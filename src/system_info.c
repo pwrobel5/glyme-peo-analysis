@@ -21,6 +21,14 @@ enum molecule_type str_to_molecule_type(const char* input_text)
         result = f1ec;
     else if(strcmp(tmp, "f2ec") == 0)
         result = f2ec;
+    else if(strcmp(tmp, "monoglym") == 0)
+        result = monoglym;
+    else if(strcmp(tmp, "tetraglym") == 0)
+        result = tetraglym;
+    else if(strcmp(tmp, "peo") == 0)
+        result = peo;
+    else if(strcmp(tmp, "fsi") == 0)
+        result = fsi;
     else if(strcmp(tmp, "tfsi") == 0)
         result = tfsi;
     else
@@ -47,6 +55,18 @@ char* molecule_type_to_str(enum molecule_type molecule_type)
             break;
         case f2ec:
             strcpy(molecule_name, "f2ec");
+            break;
+        case monoglym:
+            strcpy(molecule_name, "monoglym");
+            break;
+        case tetraglym:
+            strcpy(molecule_name, "tetraglym");
+            break;
+        case peo:
+            strcpy(molecule_name, "peo");
+            break;
+        case fsi:
+            strcpy(molecule_name, "fsi");
             break;
         case tfsi:
             strcpy(molecule_name, "tfsi");
@@ -81,9 +101,9 @@ void parse_system_info_line(struct system_compound* compound, char* buffer)
 void count_molecules(struct system_info* system_info)
 {
     system_info->metal_ions_number = 0;
-    system_info->carbonate_molecules_number = 0;
-    system_info->carbonate_types_number = 0;
-    system_info->tfsi_molecules_number = 0;
+    system_info->solvent_molecules_number = 0;
+    system_info->solvent_types_number = 0;
+    system_info->anions_number = 0;
     system_info->atoms_number = 0;
 
     for(int i = 0; i < system_info->compounds_number; i++)
@@ -93,13 +113,13 @@ void count_molecules(struct system_info* system_info)
 
         if(molecule_type == met)
             system_info->metal_ions_number += compound.quantity;
-        else if(molecule_type == ec || molecule_type == f1ec || molecule_type == f2ec)
+        else if(molecule_type == ec || molecule_type == f1ec || molecule_type == f2ec || molecule_type == monoglym || molecule_type == tetraglym || molecule_type == peo)
         {
-            system_info->carbonate_molecules_number += compound.quantity;
-            system_info->carbonate_types_number++;
+            system_info->solvent_molecules_number += compound.quantity;
+            system_info->solvent_types_number++;
         }
-        else if(molecule_type == tfsi)
-            system_info->tfsi_molecules_number += compound.quantity;
+        else if(molecule_type == fsi || molecule_type == tfsi)
+            system_info->anions_number += compound.quantity;
         
         system_info->atoms_number += (compound.quantity * compound.atoms_number);
     }
