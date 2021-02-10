@@ -278,7 +278,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
     int compound_index = 0;
     for(int i = 0; i < system_info->solvent_types_number; i++)
     {
-        compound_index = get_next_carbonate_index(compound_index, system_info->compounds, system_info->compounds_number);
+        compound_index = get_next_solvent_index(compound_index, system_info->compounds, system_info->compounds_number);
         struct system_compound current_compound = system_info->compounds[compound_index];
 
         int oxygen_atoms = current_compound.atoms_number * current_compound.quantity;
@@ -370,11 +370,15 @@ void read_data(struct program_configuration* program_configuration, struct syste
                 case ec:
                 case f1ec:
                 case f2ec:
-                    read_carbonate_data(input_file, carbonate_oxygen_positions[carbonate_index], compound);
+                case monoglym:
+                case tetraglym:
+                case peo:
+                    read_solvent_data(input_file, carbonate_oxygen_positions[carbonate_index], compound);
                     carbonate_index++;
                     break;
+                case fsi:
                 case tfsi:
-                    read_tfsi_data(input_file, tfsi_oxygen_positions, compound, &tfsi_shift);
+                    read_anion_data(input_file, tfsi_oxygen_positions, compound, &tfsi_shift);
                     break;
                 case other:
                     omit_other_data(input_file, compound);
@@ -405,8 +409,8 @@ void read_data(struct program_configuration* program_configuration, struct syste
                 fprintf(metal_output_file, "%d %d %d %d %d\n", step_number, coord_info.coordination_number, coord_info.solvent_molecules, coord_info.anion_oxygens, coord_info.anion_molecules);
         }
 
-        calculate_coord_times_carbonates(system_info, &solvent_data);
-        calculate_coord_times_tfsi(system_info, &anion_data);
+        calculate_coord_times_solvent(system_info, &solvent_data);
+        calculate_coord_times_anion(system_info, &anion_data);
 
         swap_coordination_arrays(&(solvent_data.last_solvent_coordination), &(solvent_data.current_solvent_coordination));
         clear_coordination_array(solvent_data.current_solvent_coordination, system_info->solvent_molecules_number);
@@ -427,7 +431,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
     {
         int compound_index = 0;
         for(int i = 0; i < system_info->solvent_types_number; i++) {
-            compound_index = get_next_carbonate_index(compound_index, system_info->compounds, system_info->compounds_number);
+            compound_index = get_next_solvent_index(compound_index, system_info->compounds, system_info->compounds_number);
             struct system_compound current_compound = system_info->compounds[compound_index];
 
             int denominator = system_info->metal_ions_number * system_info->compounds[compound_index].quantity;
