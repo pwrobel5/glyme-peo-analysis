@@ -32,18 +32,18 @@ void read_metal_data(FILE* input_file, struct vector* metal_ions_positions, stru
     free(buffer);
 }
 
-void read_carbonate_data(FILE* input_file, struct vector* carbonate_oxygen_positions, struct system_compound carbonate)
+void read_solvent_data(FILE* input_file, struct vector* solvent_oxygen_positions, struct system_compound solvent)
 {
     char* tmp;
     char* buffer = malloc(MAX_LINE_LENGTH * sizeof(char));
     if(buffer == NULL) raise_error("Error with buffer allocation");
 
-    for(int i = 0; i < carbonate.quantity; i++)
+    for(int i = 0; i < solvent.quantity; i++)
     {
         fgets(buffer, MAX_LINE_LENGTH, input_file);
         tmp = strtok(buffer, SEPARATOR);
 
-        check_symbol(tmp, carbonate.first_atom_symbol);
+        check_symbol(tmp, solvent.first_atom_symbol);
 
         int lines_to_omit = OMITTED_ATOMS_CARBONATE - 1;
         for(int j = 0; j < lines_to_omit; j++)
@@ -53,9 +53,9 @@ void read_carbonate_data(FILE* input_file, struct vector* carbonate_oxygen_posit
 
         fgets(buffer, MAX_LINE_LENGTH, input_file);
         int index = i;
-        read_vector_coordinates(buffer, "O", carbonate_oxygen_positions + index);
+        read_vector_coordinates(buffer, "O", solvent_oxygen_positions + index);
 
-        lines_to_omit = carbonate.atoms_number - OMITTED_ATOMS_CARBONATE - 1;
+        lines_to_omit = solvent.atoms_number - OMITTED_ATOMS_CARBONATE - 1;
         for(int j = 0; j < lines_to_omit; j++)
         {
             fgets(buffer, MAX_LINE_LENGTH, input_file);
@@ -65,17 +65,17 @@ void read_carbonate_data(FILE* input_file, struct vector* carbonate_oxygen_posit
     free(buffer);
 }
 
-void read_tfsi_data(FILE* input_file, struct vector** tfsi_oxygen_positions, struct system_compound tfsi, int* shift)
+void read_anion_data(FILE* input_file, struct vector** anion_oxygen_positions, struct system_compound anion, int* shift)
 {
     char* buffer = malloc(MAX_LINE_LENGTH * sizeof(char));
     if(buffer == NULL) raise_error("Error with buffer allocation");
 
-    for(int i = 0; i < tfsi.quantity; i++)
+    for(int i = 0; i < anion.quantity; i++)
     {
         // first oxygen atom
         fgets(buffer, MAX_LINE_LENGTH, input_file);
         int index = i + *shift;        
-        read_vector_coordinates(buffer, "O", &(tfsi_oxygen_positions[index][0]));
+        read_vector_coordinates(buffer, "O", &(anion_oxygen_positions[index][0]));
 
         // omit next 7 atoms
         for(int j = 0; j < 7; j++)
@@ -85,7 +85,7 @@ void read_tfsi_data(FILE* input_file, struct vector** tfsi_oxygen_positions, str
 
         // second oxygen atom
         fgets(buffer, MAX_LINE_LENGTH, input_file);
-        read_vector_coordinates(buffer, "O", &(tfsi_oxygen_positions[index][1]));
+        read_vector_coordinates(buffer, "O", &(anion_oxygen_positions[index][1]));
 
         // omit next 3 atoms
         for(int j = 0; j < 3; j++)
@@ -95,7 +95,7 @@ void read_tfsi_data(FILE* input_file, struct vector** tfsi_oxygen_positions, str
 
         // third oxygen atom
         fgets(buffer, MAX_LINE_LENGTH, input_file);
-        read_vector_coordinates(buffer, "O", &(tfsi_oxygen_positions[index][2]));
+        read_vector_coordinates(buffer, "O", &(anion_oxygen_positions[index][2]));
 
         // omit next 3 atoms
         for(int j = 0; j < 3; j++)
@@ -105,7 +105,7 @@ void read_tfsi_data(FILE* input_file, struct vector** tfsi_oxygen_positions, str
 
         // fourth oxygen atom
         fgets(buffer, MAX_LINE_LENGTH, input_file);
-        read_vector_coordinates(buffer, "O", &(tfsi_oxygen_positions[index][3]));
+        read_vector_coordinates(buffer, "O", &(anion_oxygen_positions[index][3]));
 
         // omit next 13 atoms
         for(int j = 0; j < 13; j++)
@@ -114,7 +114,7 @@ void read_tfsi_data(FILE* input_file, struct vector** tfsi_oxygen_positions, str
         }
     }
 
-    *shift += tfsi.quantity;
+    *shift += anion.quantity;
     free(buffer);
 }
 
@@ -165,7 +165,7 @@ void initialize_carbonate_coordination_arrays(int** last_carbonate_coordination,
 {
     if(last_carbonate_coordination == NULL || current_carbonate_coordination == NULL || carbonate_coordination_info == NULL) 
         raise_error("Error with memory allocation for coordination history");
-    for(int i = 0; i < system_info->carbonate_molecules_number; i++)
+    for(int i = 0; i < system_info->solvent_molecules_number; i++)
     {
         last_carbonate_coordination[i] = malloc(MAX_COORDINATED_METALS * sizeof(int));
         current_carbonate_coordination[i] = malloc(MAX_COORDINATED_METALS * sizeof(int));
@@ -187,7 +187,7 @@ void initialize_carbonate_coordination_arrays(int** last_carbonate_coordination,
 void free_carbonate_coordination_arrays(int** last_carbonate_coordination, int** current_carbonate_coordination, 
                                               struct oxygen_coord_info** carbonate_coordination_info, struct system_info* system_info)
 {
-    for(int i = 0; i < system_info->carbonate_molecules_number; i++)
+    for(int i = 0; i < system_info->solvent_molecules_number; i++)
     {
         free(last_carbonate_coordination[i]);
         free(current_carbonate_coordination[i]);
@@ -204,16 +204,16 @@ void initialize_tfsi_coordination_arrays(int*** last_tfsi_coordination, int*** c
     if(last_tfsi_coordination == NULL || current_tfsi_coordination == NULL || tfsi_coordination_info == NULL)
         raise_error("Error with memory allocation for coordination history");
     
-    for(int i = 0; i < system_info->tfsi_molecules_number; i++)
+    for(int i = 0; i < system_info->anions_number; i++)
     {
-        last_tfsi_coordination[i] = malloc(TRACKED_O_ATOMS_TFSI * sizeof(int**));
-        current_tfsi_coordination[i] = malloc(TRACKED_O_ATOMS_TFSI * sizeof(int**));
-        tfsi_coordination_info[i] = malloc(TRACKED_O_ATOMS_TFSI * sizeof(struct oxygen_coord_info**));
+        last_tfsi_coordination[i] = malloc(TRACKED_O_ATOMS_ANION * sizeof(int**));
+        current_tfsi_coordination[i] = malloc(TRACKED_O_ATOMS_ANION * sizeof(int**));
+        tfsi_coordination_info[i] = malloc(TRACKED_O_ATOMS_ANION * sizeof(struct oxygen_coord_info**));
 
         if(last_tfsi_coordination[i] == NULL || current_tfsi_coordination[i] == NULL || tfsi_coordination_info[i] == NULL)
             raise_error("Error with memory allocation for coordination history");
         
-        for(int j = 0; j < TRACKED_O_ATOMS_TFSI; j++)
+        for(int j = 0; j < TRACKED_O_ATOMS_ANION; j++)
         {
             last_tfsi_coordination[i][j] = malloc(MAX_COORDINATED_METALS * sizeof(int));
             current_tfsi_coordination[i][j] = malloc(MAX_COORDINATED_METALS * sizeof(int));
@@ -236,9 +236,9 @@ void initialize_tfsi_coordination_arrays(int*** last_tfsi_coordination, int*** c
 void free_tfsi_coordination_arrays(int*** last_tfsi_coordination, int*** current_tfsi_coordination, struct oxygen_coord_info*** tfsi_coordination_info, 
                                          struct system_info* system_info)
 {
-    for(int i = 0; i < system_info->tfsi_molecules_number; i++)
+    for(int i = 0; i < system_info->anions_number; i++)
     {
-        for(int j = 0; j < TRACKED_O_ATOMS_TFSI; j++)
+        for(int j = 0; j < TRACKED_O_ATOMS_ANION; j++)
         {
             free(last_tfsi_coordination[i][j]);
             free(current_tfsi_coordination[i][j]);
@@ -264,19 +264,19 @@ void read_data(struct program_configuration* program_configuration, struct syste
     
     int step_number = 0;
     struct vector* metal_ions_positions = malloc(system_info->metal_ions_number * sizeof(struct vector));
-    struct vector** carbonate_oxygen_positions = malloc(system_info->carbonate_types_number * sizeof(struct vector*));
-    struct vector** tfsi_oxygen_positions = malloc(system_info->tfsi_molecules_number * sizeof(struct vector*));
+    struct vector** carbonate_oxygen_positions = malloc(system_info->solvent_types_number * sizeof(struct vector*));
+    struct vector** tfsi_oxygen_positions = malloc(system_info->anions_number * sizeof(struct vector*));
     if(metal_ions_positions == NULL || carbonate_oxygen_positions == NULL || tfsi_oxygen_positions == NULL)
         raise_error("Error with allocation of arrays for atoms positions");
-    for(int i = 0; i < system_info->tfsi_molecules_number; i++)
+    for(int i = 0; i < system_info->anions_number; i++)
     {
-        tfsi_oxygen_positions[i] = malloc(TRACKED_O_ATOMS_TFSI * sizeof(struct vector));
+        tfsi_oxygen_positions[i] = malloc(TRACKED_O_ATOMS_ANION * sizeof(struct vector));
         if(tfsi_oxygen_positions[i] == NULL)
             raise_error("Error with memory allocation for TFSI oxygen atoms positions");
     }
 
     int compound_index = 0;
-    for(int i = 0; i < system_info->carbonate_types_number; i++)
+    for(int i = 0; i < system_info->solvent_types_number; i++)
     {
         compound_index = get_next_carbonate_index(compound_index, system_info->compounds, system_info->compounds_number);
         struct system_compound current_compound = system_info->compounds[compound_index];
@@ -297,27 +297,27 @@ void read_data(struct program_configuration* program_configuration, struct syste
     else
         metal_output_file = fopen("cation_output.dat", "w");
 
-    int** last_carbonate_coordination = malloc(system_info->carbonate_molecules_number * sizeof(int*));
-    int** current_carbonate_coordination = malloc(system_info->carbonate_molecules_number * sizeof(int*));
-    struct oxygen_coord_info** carbonate_coordination_info = malloc(system_info->carbonate_molecules_number * sizeof(struct oxygen_coord_info*));
+    int** last_carbonate_coordination = malloc(system_info->solvent_molecules_number * sizeof(int*));
+    int** current_carbonate_coordination = malloc(system_info->solvent_molecules_number * sizeof(int*));
+    struct oxygen_coord_info** carbonate_coordination_info = malloc(system_info->solvent_molecules_number * sizeof(struct oxygen_coord_info*));
     initialize_carbonate_coordination_arrays(last_carbonate_coordination, current_carbonate_coordination, carbonate_coordination_info, system_info);
     
-    struct carbonate_data carbonate_data;
-    carbonate_data.carbonate_output = carbonate_output_file;
-    carbonate_data.last_carbonate_coordination = last_carbonate_coordination;
-    carbonate_data.current_carbonate_coordination = current_carbonate_coordination;
-    carbonate_data.carbonate_coordination_info = carbonate_coordination_info;
+    struct solvent_data solvent_data;
+    solvent_data.solvent_output = carbonate_output_file;
+    solvent_data.last_solvent_coordination = last_carbonate_coordination;
+    solvent_data.current_solvent_coordination = current_carbonate_coordination;
+    solvent_data.solvent_coordination_info = carbonate_coordination_info;
 
-    int*** last_tfsi_coordination = malloc(system_info->tfsi_molecules_number * sizeof(int**));
-    int*** current_tfsi_coordination = malloc(system_info->tfsi_molecules_number * sizeof(int**));
-    struct oxygen_coord_info*** tfsi_coordination_info = malloc(system_info->tfsi_molecules_number * sizeof(struct oxygen_coord_info*));
+    int*** last_tfsi_coordination = malloc(system_info->anions_number * sizeof(int**));
+    int*** current_tfsi_coordination = malloc(system_info->anions_number * sizeof(int**));
+    struct oxygen_coord_info*** tfsi_coordination_info = malloc(system_info->anions_number * sizeof(struct oxygen_coord_info*));
     initialize_tfsi_coordination_arrays(last_tfsi_coordination, current_tfsi_coordination, tfsi_coordination_info, system_info);
 
-    struct tfsi_data tfsi_data;
-    tfsi_data.tfsi_output = tfsi_output_file;
-    tfsi_data.last_tfsi_coordination = last_tfsi_coordination;
-    tfsi_data.current_tfsi_coordination = current_tfsi_coordination;
-    tfsi_data.tfsi_coordination_info = tfsi_coordination_info;
+    struct anion_data anion_data;
+    anion_data.anion_output = tfsi_output_file;
+    anion_data.last_anion_coordination = last_tfsi_coordination;
+    anion_data.current_anion_coordination = current_tfsi_coordination;
+    anion_data.anion_coordination_info = tfsi_coordination_info;
     
     char* buffer = malloc(MAX_LINE_LENGTH * sizeof(char));
     if(buffer == NULL)
@@ -326,9 +326,9 @@ void read_data(struct program_configuration* program_configuration, struct syste
     // arrays for saving numbers of coordinated molecules to given metal ion at a given timestep
     short int*** tfsi_atoms_coordination_history = NULL;
     short int*** tfsi_coordination_history = NULL;
-    short int**** carbonate_coordination_histories = malloc(sizeof(short int***) * system_info->carbonate_types_number);
+    short int**** carbonate_coordination_histories = malloc(sizeof(short int***) * system_info->solvent_types_number);
     if(carbonate_coordination_histories == NULL) raise_error("Error with memory allocation for carbonate coordination histories array");
-    for(int i = 0; i < system_info->carbonate_types_number; i++)
+    for(int i = 0; i < system_info->solvent_types_number; i++)
     {
         carbonate_coordination_histories[i] = NULL;
     }
@@ -342,13 +342,13 @@ void read_data(struct program_configuration* program_configuration, struct syste
         if(atoms_number != system_info->atoms_number)
             printf("[WARNING] Declared atoms number different from number read from .xyz file, declared: %d, read: %d\n", system_info->atoms_number, atoms_number);
         
-        if(program_configuration->calculate_carbonate_residence == 1)
+        if(program_configuration->calculate_solvent_residence == 1)
         {    
-            for(int i = 0; i < system_info->carbonate_types_number; i++)
+            for(int i = 0; i < system_info->solvent_types_number; i++)
                 carbonate_coordination_histories[i] = initialize_history_array(carbonate_coordination_histories[i], step_number, system_info);
         }
         
-        if(program_configuration->calculate_tfsi_residence == 1)
+        if(program_configuration->calculate_anion_residence == 1)
         {
             tfsi_atoms_coordination_history = initialize_history_array(tfsi_atoms_coordination_history, step_number, system_info);
             tfsi_coordination_history = initialize_history_array(tfsi_coordination_history, step_number, system_info);
@@ -384,13 +384,13 @@ void read_data(struct program_configuration* program_configuration, struct syste
 
         struct coordination_input coordination_input;
         coordination_input.step_number = step_number;
-        coordination_input.carbonate_oxygens = carbonate_oxygen_positions;
-        coordination_input.tfsi_oxygens = tfsi_oxygen_positions;
-        coordination_input.current_carbon_coordination = carbonate_data.current_carbonate_coordination;
-        coordination_input.current_tfsi_coordination = tfsi_data.current_tfsi_coordination;
-        coordination_input.carbonate_coordination_histories = carbonate_coordination_histories;
-        coordination_input.tfsi_atoms_coordination_history = tfsi_atoms_coordination_history;
-        coordination_input.tfsi_coordination_history = tfsi_coordination_history;
+        coordination_input.solvent_oxygens = carbonate_oxygen_positions;
+        coordination_input.anion_oxygens = tfsi_oxygen_positions;
+        coordination_input.current_solvent_coordination = solvent_data.current_solvent_coordination;
+        coordination_input.current_anion_coordination = anion_data.current_anion_coordination;
+        coordination_input.solvent_coordination_histories = carbonate_coordination_histories;
+        coordination_input.anion_atoms_coordination_history = tfsi_atoms_coordination_history;
+        coordination_input.anion_coordination_history = tfsi_coordination_history;
         coordination_input.program_configuration = program_configuration;
         coordination_input.system_info = system_info;
         
@@ -400,21 +400,21 @@ void read_data(struct program_configuration* program_configuration, struct syste
             struct metal_coord_info coord_info = get_coordination_info(i, metal_ions_positions[i], &coordination_input);
 
             if(program_configuration->print_mode == separate)
-                fprintf(metal_output_files[i], "%d %d %d %d %d\n", step_number, coord_info.coordination_number, coord_info.carbonate_molecules, coord_info.tfsi_oxygens, coord_info.tfsi_molecules);
+                fprintf(metal_output_files[i], "%d %d %d %d %d\n", step_number, coord_info.coordination_number, coord_info.solvent_molecules, coord_info.anion_oxygens, coord_info.anion_molecules);
             else
-                fprintf(metal_output_file, "%d %d %d %d %d\n", step_number, coord_info.coordination_number, coord_info.carbonate_molecules, coord_info.tfsi_oxygens, coord_info.tfsi_molecules);
+                fprintf(metal_output_file, "%d %d %d %d %d\n", step_number, coord_info.coordination_number, coord_info.solvent_molecules, coord_info.anion_oxygens, coord_info.anion_molecules);
         }
 
-        calculate_coord_times_carbonates(system_info, &carbonate_data);
-        calculate_coord_times_tfsi(system_info, &tfsi_data);
+        calculate_coord_times_carbonates(system_info, &solvent_data);
+        calculate_coord_times_tfsi(system_info, &anion_data);
 
-        swap_coordination_arrays(&(carbonate_data.last_carbonate_coordination), &(carbonate_data.current_carbonate_coordination));
-        clear_coordination_array(carbonate_data.current_carbonate_coordination, system_info->carbonate_molecules_number);
+        swap_coordination_arrays(&(solvent_data.last_solvent_coordination), &(solvent_data.current_solvent_coordination));
+        clear_coordination_array(solvent_data.current_solvent_coordination, system_info->solvent_molecules_number);
 
-        for(int i = 0; i < system_info->tfsi_molecules_number; i++)
+        for(int i = 0; i < system_info->anions_number; i++)
         {
-            swap_coordination_arrays(&(tfsi_data.last_tfsi_coordination[i]), &(tfsi_data.current_tfsi_coordination[i]));
-            clear_coordination_array(tfsi_data.current_tfsi_coordination[i], TRACKED_O_ATOMS_TFSI);
+            swap_coordination_arrays(&(anion_data.last_anion_coordination[i]), &(anion_data.current_anion_coordination[i]));
+            clear_coordination_array(anion_data.current_anion_coordination[i], TRACKED_O_ATOMS_ANION);
         }
 
         step_number++;
@@ -423,10 +423,10 @@ void read_data(struct program_configuration* program_configuration, struct syste
     save_last_step_data(carbonate_coordination_info, tfsi_coordination_info, system_info, carbonate_output_file, tfsi_output_file);
 
     // calculate correlated residence times
-    if(program_configuration->calculate_carbonate_residence == 1)
+    if(program_configuration->calculate_solvent_residence == 1)
     {
         int compound_index = 0;
-        for(int i = 0; i < system_info->carbonate_types_number; i++) {
+        for(int i = 0; i < system_info->solvent_types_number; i++) {
             compound_index = get_next_carbonate_index(compound_index, system_info->compounds, system_info->compounds_number);
             struct system_compound current_compound = system_info->compounds[compound_index];
 
@@ -443,15 +443,15 @@ void read_data(struct program_configuration* program_configuration, struct syste
             free(molecule_name);
         }
     }
-    if(program_configuration->calculate_tfsi_residence == 1)
+    if(program_configuration->calculate_anion_residence == 1)
     {
-        int molecules_denominator = system_info->metal_ions_number * system_info->tfsi_molecules_number;
+        int molecules_denominator = system_info->metal_ions_number * system_info->anions_number;
         double* molecules_residence = calculate_residence_times(tfsi_coordination_history, step_number, molecules_denominator, system_info);
         delete_history_array(tfsi_coordination_history, step_number, system_info->metal_ions_number);
         save_residence_to_file(molecules_residence, "tfsi-residence-times.dat", step_number);
         free(molecules_residence);
 
-        int atoms_denominator = molecules_denominator * TRACKED_O_ATOMS_TFSI;
+        int atoms_denominator = molecules_denominator * TRACKED_O_ATOMS_ANION;
         double* atoms_residence = calculate_residence_times(tfsi_atoms_coordination_history, step_number, atoms_denominator, system_info);
         delete_history_array(tfsi_atoms_coordination_history, step_number, system_info->metal_ions_number);
         save_residence_to_file(atoms_residence, "tfsi-atoms-residence-times.dat", step_number);
@@ -477,13 +477,13 @@ void read_data(struct program_configuration* program_configuration, struct syste
 
     free(metal_ions_positions);
     
-    for(int i = 0; i < system_info->carbonate_types_number; i++)
+    for(int i = 0; i < system_info->solvent_types_number; i++)
     {
         free(carbonate_oxygen_positions[i]);
     }
     free(carbonate_oxygen_positions);
 
-    for(int i = 0; i < system_info->tfsi_molecules_number; i++)
+    for(int i = 0; i < system_info->anions_number; i++)
     {
         free(tfsi_oxygen_positions[i]);
     }
