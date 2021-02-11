@@ -4,33 +4,25 @@
 
 #include "program.h"
 
-enum molecule_type str_to_molecule_type(const char* input_text)
+#define ENTRY_TYPE_LENGTH 10
+#define COMPOUND_NAME_LENGTH 20
+#define ATOM_SYMBOL_LENGTH 4
+
+enum entry_type str_to_entry_type(const char* input_text)
 {
-    char* tmp = malloc(MOLECULE_NAME_LENGTH * sizeof(char));
+    char* tmp = malloc(ENTRY_TYPE_LENGTH * sizeof(char));
     if(tmp == NULL) raise_error("Error with allocation temp string");
     strcpy(tmp, input_text);
     to_lower_case(tmp);
 
-    enum molecule_type result;    
+    enum entry_type result;    
 
-    if(strcmp(tmp, "met") == 0)
-        result = met;
-    else if(strcmp(tmp, "ec") == 0)
-        result = ec;
-    else if(strcmp(tmp, "f1ec") == 0)
-        result = f1ec;
-    else if(strcmp(tmp, "f2ec") == 0)
-        result = f2ec;
-    else if(strcmp(tmp, "monoglym") == 0)
-        result = monoglym;
-    else if(strcmp(tmp, "tetraglym") == 0)
-        result = tetraglym;
-    else if(strcmp(tmp, "peo") == 0)
-        result = peo;
-    else if(strcmp(tmp, "fsi") == 0)
-        result = fsi;
-    else if(strcmp(tmp, "tfsi") == 0)
-        result = tfsi;
+    if(strcmp(tmp, "cation") == 0)
+        result = cation;
+    else if(strcmp(tmp, "solvent") == 0)
+        result = solvent;
+    else if(strcmp(tmp, "anion") == 0)
+        result = anion;
     else
         result = other;
     
@@ -38,52 +30,38 @@ enum molecule_type str_to_molecule_type(const char* input_text)
     return result;
 }
 
-char* molecule_type_to_str(enum molecule_type molecule_type)
+char* entry_type_to_str(enum entry_type entry_type)
 {
-    char* molecule_name = malloc(MOLECULE_NAME_LENGTH * sizeof(char));
-    if(molecule_name == NULL) raise_error("Error with allocation string with molecule name");
+    char* entry_name = malloc(ENTRY_TYPE_LENGTH * sizeof(char));
+    if(entry_name == NULL) raise_error("Error with allocation string with molecule name");
 
-    switch(molecule_type) {
-        case met:
-            strcpy(molecule_name, "met");
+    switch(entry_type) {
+        case cation:
+            strcpy(entry_name, "cation");
             break;
-        case ec:
-            strcpy(molecule_name, "ec");
+        case solvent:
+            strcpy(entry_name, "solvent");
             break;
-        case f1ec:
-            strcpy(molecule_name, "f1ec");
-            break;
-        case f2ec:
-            strcpy(molecule_name, "f2ec");
-            break;
-        case monoglym:
-            strcpy(molecule_name, "monoglym");
-            break;
-        case tetraglym:
-            strcpy(molecule_name, "tetraglym");
-            break;
-        case peo:
-            strcpy(molecule_name, "peo");
-            break;
-        case fsi:
-            strcpy(molecule_name, "fsi");
-            break;
-        case tfsi:
-            strcpy(molecule_name, "tfsi");
+        case anion:
+            strcpy(entry_name, "anion");
             break;
         case other:
-            strcpy(molecule_name, "other");
+            strcpy(entry_name, "other");
             break;
     }
 
-    return molecule_name;
+    return entry_name;
 }
 
 void parse_system_info_line(struct system_compound* compound, char* buffer)
 {
     char* tmp;
     tmp = strtok(buffer, SEPARATOR);
-    compound->molecule_type = str_to_molecule_type(tmp);
+    compound->entry_type = str_to_entry_type(tmp);
+
+    tmp = strtok(NULL, SEPARATOR);
+    compound->compound_name = malloc(COMPOUND_NAME_LENGTH * sizeof(char));
+    if(compound->compound_name == NULL) raise_error("Error with memory allocation for compound name");
 
     tmp = strtok(NULL, SEPARATOR);
     compound->first_atom_symbol = malloc(ATOM_SYMBOL_LENGTH * sizeof(char));
@@ -96,11 +74,27 @@ void parse_system_info_line(struct system_compound* compound, char* buffer)
 
     tmp = strtok(NULL, SEPARATOR);
     compound->atoms_number = atoi(tmp);
+
+    compound->tracked_atom_symbol = NULL;
+    compound->tracked_atoms_number = 0;
+
+    if((tmp = strtok(NULL, SEPARATOR)) != NULL)
+    {
+        compound->tracked_atom_symbol = malloc(ATOM_SYMBOL_LENGTH * sizeof(char));
+        if(compound->tracked_atom_symbol == NULL) raise_error("Error with memory allocation for tracked atom symbol");
+        strcpy(compound->tracked_atom_symbol, tmp);
+        format_atom_symbol(compound->tracked_atom_symbol);
+
+        if((tmp = strtok(NULL, SEPARATOR)) != NULL)
+            compound->tracked_atoms_number = atoi(tmp);
+        else
+            compound->tracked_atoms_number = 1;
+    }
 }
 
 void count_molecules(struct system_info* system_info)
 {
-    system_info->metal_ions_number = 0;
+    system_info->cations_number = 0;
     system_info->solvent_molecules_number = 0;
     system_info->solvent_types_number = 0;
     system_info->anions_number = 0;
@@ -109,16 +103,16 @@ void count_molecules(struct system_info* system_info)
     for(int i = 0; i < system_info->compounds_number; i++)
     {
         struct system_compound compound = system_info->compounds[i];
-        enum molecule_type molecule_type = compound.molecule_type;
+        enum entry_type entry_type = compound.entry_type;
 
-        if(molecule_type == met)
-            system_info->metal_ions_number += compound.quantity;
-        else if(molecule_type == ec || molecule_type == f1ec || molecule_type == f2ec || molecule_type == monoglym || molecule_type == tetraglym || molecule_type == peo)
+        if(entry_type == cation)
+            system_info->cations_number += compound.quantity;
+        else if(entry_type == solvent)
         {
             system_info->solvent_molecules_number += compound.quantity;
             system_info->solvent_types_number++;
         }
-        else if(molecule_type == fsi || molecule_type == tfsi)
+        else if(entry_type == anion)
             system_info->anions_number += compound.quantity;
         
         system_info->atoms_number += (compound.quantity * compound.atoms_number);
@@ -154,4 +148,19 @@ struct system_info* get_system_info(const char* system_file_name)
     count_molecules(result);
 
     return result;
+}
+
+void free_system_info(struct system_info* system_info)
+{
+    for(int i = 0; i < system_info->compounds_number; i++)
+    {
+        free(system_info->compounds[i].compound_name);
+        free(system_info->compounds[i].first_atom_symbol);
+
+        if(system_info->compounds[i].tracked_atom_symbol != NULL)
+            free(system_info->compounds[i].tracked_atom_symbol);
+    }
+
+    free(system_info->compounds);
+    free(system_info);
 }

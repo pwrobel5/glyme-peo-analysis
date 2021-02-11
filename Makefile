@@ -1,11 +1,11 @@
 CC = gcc
-CFLAGS = -Wall -std=c99
+CFLAGS = -Wall -std=c99 -g
 LIBS = -lm
 
 OBJ_DIR = obj
 SRC_DIR = src
 TEST_DIR = test
-OBJ = $(addprefix $(OBJ_DIR)/, program.o reading_utils.o system_info.o vector.o coordination.o residence.o misc.o)
+OBJ = $(addprefix $(OBJ_DIR)/, program.o io.o reading_utils.o system_info.o vector.o coordination.o residence.o misc.o)
 INC = -I./include/
 
 program: $(OBJ)

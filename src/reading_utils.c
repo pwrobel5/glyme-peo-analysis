@@ -5,6 +5,10 @@
 
 #include "program.h"
 
+#define OUTPUT_FILE_NAME_LENGTH 60
+#define OMITTED_ATOMS_CARBONATE 10
+#define TRACKED_O_ATOMS_ANION 4
+/*
 void check_symbol(char* read, char* expected)
 {
     if(strcmp(read, expected) != 0)
@@ -439,7 +443,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
             delete_history_array(carbonate_coordination_histories[i], step_number, system_info->metal_ions_number);
 
             char residence_output_name[OUTPUT_FILE_NAME_LENGTH] = "carbonate-residence-times-";
-            char* molecule_name = molecule_type_to_str(current_compound.molecule_type);
+            char* molecule_name = entry_type_to_str(current_compound.molecule_type);
             strcat(residence_output_name, molecule_name);
             strcat(residence_output_name, ".dat");
             save_residence_to_file(residence, residence_output_name, step_number);
@@ -495,4 +499,4 @@ void read_data(struct program_configuration* program_configuration, struct syste
     free(carbonate_coordination_histories);
     free(buffer);
     fclose(input_file);
-}
+}*/

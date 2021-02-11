@@ -3,6 +3,8 @@
 
 #include "program.h"
 
+#define TRACKED_O_ATOMS_ANION 4
+/*
 int detect_coordination(struct vector metal, struct vector oxygen, double threshold, double box_size)
 {
     if(calculate_distance(&metal, &oxygen, box_size) <= threshold)
@@ -238,4 +240,4 @@ struct metal_coord_info get_coordination_info(int metal_index, struct vector met
     }
 
     return result;
-}
+}*/

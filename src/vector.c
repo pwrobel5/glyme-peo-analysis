@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include "program.h"
-
+/*
 void read_vector_coordinates(char* line, char* expected_symbol, struct vector* vector)
 {
     char* tmp;
@@ -47,4 +47,4 @@ double calculate_distance(struct vector* v1, struct vector* v2, double box_size)
     v1minusv2.z = include_pbc(v1->z - v2->z, box_size);
     
     return sqrt(pow(v1minusv2.x, 2) + pow(v1minusv2.y, 2) + pow(v1minusv2.z, 2));
-}
+}*/

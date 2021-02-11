@@ -26,18 +26,7 @@ void raise_error(const char* message)
     perror(message);
     exit(EXIT_FAILURE);
 }
-
-void free_system_info(struct system_info* system_info)
-{
-    for(int i = 0; i < system_info->compounds_number; i++)
-    {
-        free(system_info->compounds[i].first_atom_symbol);
-    }
-
-    free(system_info->compounds);
-    free(system_info);
-}
-
+/*
 int get_next_solvent_index(int current_index, struct system_compound* compounds, int compounds_number)
 {
     current_index += 1;
@@ -50,4 +39,4 @@ int get_next_solvent_index(int current_index, struct system_compound* compounds,
     }
 
     return (current_index < compounds_number) ? current_index : -1;
-}
+}*/

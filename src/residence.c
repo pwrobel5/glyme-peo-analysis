@@ -2,6 +2,8 @@
 
 #include "program.h"
 
+#define MAX_COORDINATION_NUMBER 10
+/*
 void delete_history_array(short int*** array, int step_number, int metal_ions)
 {
     for(int i = 0; i < step_number; i++)
@@ -127,4 +129,4 @@ void save_residence_to_file(double* residence, const char* residence_file_name, 
     }
 
     fclose(residence_output);
-}
+}*/
