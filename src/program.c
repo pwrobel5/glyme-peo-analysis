@@ -26,7 +26,7 @@ void print_usage(FILE* stream, int exit_code)
     exit(exit_code);
 }
 
-void parse_initial_arguments(int argc, char* argv[], struct program_configuration* program_configuration)
+struct program_configuration* read_configuration(int argc, char* argv[])
 {
     int next_option;
     const char* const short_options = "hs:a:b:orf";
@@ -40,6 +40,18 @@ void parse_initial_arguments(int argc, char* argv[], struct program_configuratio
         { "anion-residence",     0, NULL, 'f' },
         { NULL,                  0, NULL,  0  }
     };
+
+    struct program_configuration* program_configuration = malloc(sizeof(struct program_configuration));
+    if(program_configuration == NULL) raise_error("Error with memory allocation for program_configuration!");
+
+    program_configuration->input_file_name = NULL;
+    program_configuration->system_file_name = NULL;
+    program_configuration->solvent_threshold = DEFAULT_SOLVENT_THRESHOLD;
+    program_configuration->anion_threshold = DEFAULT_ANION_THRESHOLD;
+    program_configuration->box_size = DEFAULT_BOX_SIZE;
+    program_configuration->print_mode = separate;
+    program_configuration->calculate_solvent_residence = 0;
+    program_configuration->calculate_anion_residence = 0;
 
     do {
         next_option = getopt_long(argc, argv, short_options, long_options, NULL);
@@ -81,26 +93,18 @@ void parse_initial_arguments(int argc, char* argv[], struct program_configuratio
         errno = ENODATA;
         perror("No input file given!");
         print_usage(stderr, EXIT_FAILURE);
-    }    
+    }
+
+    return program_configuration;
 }
 
 int main(int argc, char* argv[])
 {
-    struct program_configuration program_configuration;
-
-    program_configuration.input_file_name = NULL;
-    program_configuration.system_file_name = NULL;
-    program_configuration.solvent_threshold = DEFAULT_SOLVENT_THRESHOLD;
-    program_configuration.anion_threshold = DEFAULT_ANION_THRESHOLD;
-    program_configuration.box_size = DEFAULT_BOX_SIZE;
-    program_configuration.print_mode = separate;
-    program_configuration.calculate_solvent_residence = 0;
-    program_configuration.calculate_anion_residence = 0;
-
-    parse_initial_arguments(argc, argv, &program_configuration);
-    struct system_info* system_info = get_system_info(program_configuration.system_file_name);
-    read_data(&program_configuration, system_info);
-    free_system_info(system_info);
+    struct program_configuration* program_configuration = read_configuration(argc, argv);
+    //struct system_info* system_info = get_system_info(program_configuration->system_file_name);
+    //read_data(&program_configuration, system_info);
+    //free_system_info(system_info);
+    free(program_configuration);
 
     return 0;
 }
