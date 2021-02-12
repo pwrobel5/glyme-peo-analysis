@@ -12,7 +12,9 @@ int detect_coordination(struct vector metal, struct vector oxygen, double thresh
     
     return 0;
 }
+*/
 
+/*
 void mark_coordination(int metal_index, int* oxygen_coordination)
 {
     int index = 0;
@@ -21,7 +23,9 @@ void mark_coordination(int metal_index, int* oxygen_coordination)
 
     oxygen_coordination[index] = metal_index;
 }
+*/
 
+/*
 void insert_new_coord_info(struct oxygen_coord_info* array, int metal_index)
 {
     int index = 0;
@@ -36,7 +40,9 @@ void insert_new_coord_info(struct oxygen_coord_info* array, int metal_index)
     array[index].metal_ion_index = metal_index;
     array[index].time = 1;
 }
+*/
 
+/*
 int find_metal(struct oxygen_coord_info* array, int metal_index)
 {
     int index = 0;
@@ -50,13 +56,17 @@ int find_metal(struct oxygen_coord_info* array, int metal_index)
 
     return index;
 }
+*/
 
+/*
 void increase_coord_time(struct oxygen_coord_info* array, int metal_index)
 {
     int index = find_metal(array, metal_index);
     array[index].time++;
 }
+*/
 
+/*
 void delete_coord_time(struct oxygen_coord_info* array, int metal_index, FILE* output_file)
 {
     int index = find_metal(array, metal_index);
@@ -65,14 +75,18 @@ void delete_coord_time(struct oxygen_coord_info* array, int metal_index, FILE* o
     array[index].time = 0;
     array[index].metal_ion_index = BLANK;
 }
+*/
 
+/*
 void swap_coordination_arrays(int*** first, int*** second)
 {
     int** tmp = *(first);
     (*first) = *(second);
     *(second) = tmp;
 }
+*/
 
+/*
 void clear_coordination_array(int** array, int first_index_max)
 {
     for(int i = 0; i < first_index_max; i++)
@@ -83,7 +97,9 @@ void clear_coordination_array(int** array, int first_index_max)
         }
     }
 }
+*/
 
+/*
 void save_data_from_array(struct oxygen_coord_info* array, FILE* output_file)
 {
     for(int i = 0; i < MAX_COORDINATED_METALS; i++)
@@ -92,7 +108,9 @@ void save_data_from_array(struct oxygen_coord_info* array, FILE* output_file)
             fprintf(output_file, "%d\n", array[i].time);
     }
 }
+*/
 
+/*
 void save_last_step_data(struct oxygen_coord_info** solvent_data, struct oxygen_coord_info*** anion_data, struct system_info* system_info, FILE* solvent_output, FILE* anion_output)
 {
     for(int i = 0; i < system_info->solvent_molecules_number; i++)
@@ -108,7 +126,9 @@ void save_last_step_data(struct oxygen_coord_info** solvent_data, struct oxygen_
         }
     }
 }
+*/
 
+/*
 void calculate_coord_times(int molecules_number, int** current_coordination, int** last_coordination, 
                                       struct oxygen_coord_info** coordination_info, FILE* output_file)
 {
@@ -151,7 +171,9 @@ void calculate_coord_times(int molecules_number, int** current_coordination, int
         }
     }
 }
+*/
 
+/*
 void calculate_coord_times_anion(struct system_info* system_info, struct anion_data* anion_data)
 {
     for(int i = 0; i < system_info->anions_number; i++)
@@ -159,13 +181,17 @@ void calculate_coord_times_anion(struct system_info* system_info, struct anion_d
         calculate_coord_times(TRACKED_O_ATOMS_ANION, anion_data->current_anion_coordination[i], anion_data->last_anion_coordination[i], anion_data->anion_coordination_info[i], anion_data->anion_output);
     }
 }
+*/
 
+/*
 void calculate_coord_times_solvent(struct system_info* system_info, struct solvent_data* solvent_data)
 {
     calculate_coord_times(system_info->solvent_molecules_number, solvent_data->current_solvent_coordination, solvent_data->last_solvent_coordination,
                           solvent_data->solvent_coordination_info, solvent_data->solvent_output);
 }
+*/
 
+/*
 struct metal_coord_info get_coordination_info(int metal_index, struct vector metal_position, struct coordination_input* coordination_input)
 {
     struct metal_coord_info result;

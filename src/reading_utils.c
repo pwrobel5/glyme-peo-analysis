@@ -19,7 +19,9 @@ void check_symbol(char* read, char* expected)
         raise_error(buffer);
     }
 }
+*/
 
+/*
 void read_metal_data(FILE* input_file, struct vector* metal_ions_positions, struct system_compound compound, int* shift)
 {
     char* buffer = malloc(MAX_LINE_LENGTH * sizeof(char));
@@ -35,7 +37,9 @@ void read_metal_data(FILE* input_file, struct vector* metal_ions_positions, stru
     *shift += compound.quantity;
     free(buffer);
 }
+*/
 
+/*
 void read_solvent_data(FILE* input_file, struct vector* solvent_oxygen_positions, struct system_compound solvent)
 {
     char* tmp;
@@ -68,7 +72,9 @@ void read_solvent_data(FILE* input_file, struct vector* solvent_oxygen_positions
 
     free(buffer);
 }
+*/
 
+/*
 void read_anion_data(FILE* input_file, struct vector** anion_oxygen_positions, struct system_compound anion, int* shift)
 {
     char* buffer = malloc(MAX_LINE_LENGTH * sizeof(char));
@@ -121,7 +127,9 @@ void read_anion_data(FILE* input_file, struct vector** anion_oxygen_positions, s
     *shift += anion.quantity;
     free(buffer);
 }
+*/
 
+/*
 void omit_other_data(FILE* input_file, struct system_compound compound)
 {
     int atoms_number = compound.quantity * compound.atoms_number;
@@ -135,7 +143,9 @@ void omit_other_data(FILE* input_file, struct system_compound compound)
 
     free(buffer);
 }
+*/
 
+/*
 FILE** open_metal_files(struct system_info* system_info)
 {
     FILE** result = malloc(system_info->metal_ions_number * sizeof(FILE*));
@@ -163,7 +173,9 @@ FILE** open_metal_files(struct system_info* system_info)
 
     return result;
 }
+*/
 
+/*
 void initialize_carbonate_coordination_arrays(int** last_carbonate_coordination, int** current_carbonate_coordination, 
                                               struct oxygen_coord_info** carbonate_coordination_info, struct system_info* system_info)
 {
@@ -187,7 +199,9 @@ void initialize_carbonate_coordination_arrays(int** last_carbonate_coordination,
         }
     }
 }
+*/
 
+/*
 void free_carbonate_coordination_arrays(int** last_carbonate_coordination, int** current_carbonate_coordination, 
                                               struct oxygen_coord_info** carbonate_coordination_info, struct system_info* system_info)
 {
@@ -201,7 +215,9 @@ void free_carbonate_coordination_arrays(int** last_carbonate_coordination, int**
     free(current_carbonate_coordination);
     free(carbonate_coordination_info);
 }
+*/
 
+/*
 void initialize_tfsi_coordination_arrays(int*** last_tfsi_coordination, int*** current_tfsi_coordination, struct oxygen_coord_info*** tfsi_coordination_info, 
                                          struct system_info* system_info)
 {
@@ -236,7 +252,9 @@ void initialize_tfsi_coordination_arrays(int*** last_tfsi_coordination, int*** c
         }
     }
 }
+*/
 
+/*
 void free_tfsi_coordination_arrays(int*** last_tfsi_coordination, int*** current_tfsi_coordination, struct oxygen_coord_info*** tfsi_coordination_info, 
                                          struct system_info* system_info)
 {
@@ -258,7 +276,9 @@ void free_tfsi_coordination_arrays(int*** last_tfsi_coordination, int*** current
     free(current_tfsi_coordination);
     free(tfsi_coordination_info);
 }
+*/
 
+/*
 void read_data(struct program_configuration* program_configuration, struct system_info* system_info)
 {
     FILE* input_file = fopen(program_configuration->input_file_name, "r");

@@ -15,17 +15,23 @@ void read_vector_coordinates(char* line, char* expected_symbol, struct vector* v
     vector->y = atof(strtok(NULL, SEPARATOR));
     vector->z = atof(strtok(NULL, SEPARATOR));
 }
+*/
 
+/*
 double scalar_product(struct vector v1, struct vector v2)
 {
     return ((v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z));
 }
+*/
 
+/*
 double vector_norm(struct vector v)
 {
     return sqrt(scalar_product(v, v));
 }
+*/
 
+/*
 double include_pbc(double vector_component, double cell_vector_component)
 {
     double result = vector_component;
@@ -37,7 +43,9 @@ double include_pbc(double vector_component, double cell_vector_component)
     
     return result;
 }
+*/
 
+/*
 double calculate_distance(struct vector* v1, struct vector* v2, double box_size)
 {
     struct vector v1minusv2;
