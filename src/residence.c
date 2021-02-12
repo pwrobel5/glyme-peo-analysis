@@ -3,12 +3,12 @@
 #include "program.h"
 
 #define MAX_COORDINATION_NUMBER 10
-/*
-void delete_history_array(short int*** array, int step_number, int metal_ions)
+
+void delete_history_array(short int*** array, int step_number, int cations)
 {
     for(int i = 0; i < step_number; i++)
     {
-        for(int j = 0; j < metal_ions; j++)
+        for(int j = 0; j < cations; j++)
         {
             free(array[i][j]);
         }
@@ -16,9 +16,7 @@ void delete_history_array(short int*** array, int step_number, int metal_ions)
     }
     free(array);
 }
-*/
 
-/*
 short int*** initialize_history_array(short int*** array, int step_number, struct system_info* sys_info)
 {
     int current_size = step_number + 1;
@@ -26,23 +24,23 @@ short int*** initialize_history_array(short int*** array, int step_number, struc
     short int*** tmp = realloc(array, current_size * sizeof(short int**));
     if(tmp == NULL)
     {
-        delete_history_array(array, step_number, sys_info->metal_ions_number);
+        delete_history_array(array, step_number, sys_info->cations_number);
         raise_error("Error with reallocation of heavisides array");
     }     
             
-    tmp[step_number] = malloc(sys_info->metal_ions_number * sizeof(short int*));
+    tmp[step_number] = malloc(sys_info->cations_number * sizeof(short int*));
     if(tmp[step_number] == NULL)
     {
-        delete_history_array(tmp, step_number, sys_info->metal_ions_number);
+        delete_history_array(tmp, step_number, sys_info->cations_number);
         raise_error("Error with allocation of heavisides array for next step");
     }
         
-    for(int i = 0; i < sys_info->metal_ions_number; i++)
+    for(int i = 0; i < sys_info->cations_number; i++)
     {
         tmp[step_number][i] = malloc(MAX_COORDINATION_NUMBER * sizeof(short int));
         if(tmp[step_number][i] == NULL)
         {
-            delete_history_array(tmp, step_number, sys_info->metal_ions_number);
+            delete_history_array(tmp, step_number, sys_info->cations_number);
             raise_error("Error with allocation of heavisides array for current metal ion");
         }
 
@@ -54,7 +52,6 @@ short int*** initialize_history_array(short int*** array, int step_number, struc
 
     return tmp;
 }
-*/
 
 /*
 double* calculate_residence_times(short*** history_array, int steps, int denominator, struct system_info* system_info)

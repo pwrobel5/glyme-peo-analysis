@@ -95,9 +95,11 @@ void parse_system_info_line(struct system_compound* compound, char* buffer)
 void count_molecules(struct system_info* system_info)
 {
     system_info->cations_number = 0;
+    system_info->cation_types_number = 0;
     system_info->solvent_molecules_number = 0;
     system_info->solvent_types_number = 0;
     system_info->anions_number = 0;
+    system_info->anion_types_number = 0;
     system_info->atoms_number = 0;
 
     for(int i = 0; i < system_info->compounds_number; i++)
@@ -106,14 +108,20 @@ void count_molecules(struct system_info* system_info)
         enum entry_type entry_type = compound.entry_type;
 
         if(entry_type == cation)
+        {
             system_info->cations_number += compound.quantity;
+            system_info->cation_types_number++;
+        }
         else if(entry_type == solvent)
         {
             system_info->solvent_molecules_number += compound.quantity;
             system_info->solvent_types_number++;
         }
         else if(entry_type == anion)
+        {
             system_info->anions_number += compound.quantity;
+            system_info->anion_types_number++;
+        }
         
         system_info->atoms_number += (compound.quantity * compound.atoms_number);
     }

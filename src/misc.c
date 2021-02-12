@@ -26,17 +26,3 @@ void raise_error(const char* message)
     perror(message);
     exit(EXIT_FAILURE);
 }
-/*
-int get_next_solvent_index(int current_index, struct system_compound* compounds, int compounds_number)
-{
-    current_index += 1;
-    struct system_compound current_compound = compounds[current_index];
-    while(current_index < compounds_number && current_compound.molecule_type != ec && current_compound.molecule_type != f1ec && current_compound.molecule_type != f2ec &&
-          current_compound.molecule_type != monoglym && current_compound.molecule_type != tetraglym && current_compound.molecule_type != peo)
-    {
-        current_index++;
-        current_compound = compounds[current_index];
-    }
-
-    return (current_index < compounds_number) ? current_index : -1;
-}*/

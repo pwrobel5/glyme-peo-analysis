@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-#ifndef CARBONATE_ANALYSER_H
-#define CARBONATE_ANALYSER_H
+#ifndef MD_ANALYSER_H
+#define MD_ANALYSER_H
 
 #define MAX_LINE_LENGTH 150
-#define MAX_COORDINATED_METALS 4
+#define MAX_COORDINATED_CATIONS 4
 #define BLANK -1
 #define SEPARATOR " "
 
@@ -40,9 +40,11 @@ struct system_compound {
 struct system_info {
     int compounds_number;
     int cations_number;
+    int cation_types_number;
     int solvent_molecules_number;
     int solvent_types_number;
     int anions_number;
+    int anion_types_number;
     int atoms_number;
     struct system_compound* compounds;
 };
@@ -53,8 +55,8 @@ struct vector {
     double z;
 };
 
-struct oxygen_coord_info {
-    int metal_ion_index;
+struct ligand_coord_info {
+    int cation_index;
     int time;
 };
 
@@ -65,18 +67,11 @@ struct metal_coord_info {
     int anion_molecules;
 };
 
-struct solvent_data {
-    int** current_solvent_coordination;
-    int** last_solvent_coordination;
-    struct oxygen_coord_info** solvent_coordination_info;
-    FILE* solvent_output;
-};
-
-struct anion_data {
-    int*** current_anion_coordination;
-    int*** last_anion_coordination;
-    struct oxygen_coord_info*** anion_coordination_info;
-    FILE* anion_output;
+struct entry_data {
+    int*** current_coordination;
+    int*** last_coordination;
+    struct ligand_coord_info*** coordination_info;
+    FILE* output;
 };
 
 struct coordination_input {
@@ -95,9 +90,9 @@ struct coordination_input {
 // coordination.c
 void swap_coordination_arrays(int*** first, int*** second);
 void clear_coordination_array(int** array, int first_index_max);
-void save_last_step_data(struct oxygen_coord_info** solvent_data, struct oxygen_coord_info*** anion_data, struct system_info* system_info, FILE* solvent_output, FILE* anion_output);
-void calculate_coord_times_solvent(struct system_info* system_info, struct solvent_data* solvent_data);
-void calculate_coord_times_anion(struct system_info* system_info, struct anion_data* anion_data);
+void save_last_step_data(struct ligand_coord_info** solvent_data, struct ligand_coord_info*** anion_data, struct system_info* system_info, FILE* solvent_output, FILE* anion_output);
+void calculate_coord_times_solvent(struct system_info* system_info, struct entry_data* solvent_data);
+void calculate_coord_times_anion(struct system_info* system_info, struct entry_data* anion_data);
 struct metal_coord_info get_coordination_info(int metal_index, struct vector metal_position, struct coordination_input* coordination_input);
 
 // io.c
@@ -108,7 +103,6 @@ struct program_configuration* read_configuration(int argc, char* argv[]);
 void to_lower_case(char* input_text);
 void format_atom_symbol(char* input_text);
 void raise_error(const char* message);
-int get_next_solvent_index(int current_index, struct system_compound* compounds, int compounds_number);
 
 // reading_utils.c
 void check_symbol(char* read, char* expected);
