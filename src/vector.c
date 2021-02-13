@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include "program.h"
-/*
+
 void read_vector_coordinates(char* line, char* expected_symbol, struct vector* vector)
 {
     char* tmp;
@@ -15,7 +15,6 @@ void read_vector_coordinates(char* line, char* expected_symbol, struct vector* v
     vector->y = atof(strtok(NULL, SEPARATOR));
     vector->z = atof(strtok(NULL, SEPARATOR));
 }
-*/
 
 /*
 double scalar_product(struct vector v1, struct vector v2)
@@ -31,7 +30,6 @@ double vector_norm(struct vector v)
 }
 */
 
-/*
 double include_pbc(double vector_component, double cell_vector_component)
 {
     double result = vector_component;
@@ -43,9 +41,7 @@ double include_pbc(double vector_component, double cell_vector_component)
     
     return result;
 }
-*/
 
-/*
 double calculate_distance(struct vector* v1, struct vector* v2, double box_size)
 {
     struct vector v1minusv2;
@@ -55,4 +51,4 @@ double calculate_distance(struct vector* v1, struct vector* v2, double box_size)
     v1minusv2.z = include_pbc(v1->z - v2->z, box_size);
     
     return sqrt(pow(v1minusv2.x, 2) + pow(v1minusv2.y, 2) + pow(v1minusv2.z, 2));
-}*/
+}

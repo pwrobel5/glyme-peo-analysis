@@ -4,26 +4,23 @@
 #include "program.h"
 
 #define TRACKED_O_ATOMS_ANION 4
-/*
-int detect_coordination(struct vector metal, struct vector oxygen, double threshold, double box_size)
+
+int detect_coordination(struct vector cation, struct vector ligand_atom, double threshold, double box_size)
 {
-    if(calculate_distance(&metal, &oxygen, box_size) <= threshold)
+    if(calculate_distance(&cation, &ligand_atom, box_size) <= threshold)
         return 1;
     
     return 0;
 }
-*/
 
-/*
-void mark_coordination(int metal_index, int* oxygen_coordination)
+void mark_coordination(int cation_index, int* ligand_coordination)
 {
     int index = 0;
-    while(oxygen_coordination[index] != BLANK) 
+    while(ligand_coordination[index] != BLANK) 
         index++;
 
-    oxygen_coordination[index] = metal_index;
+    ligand_coordination[index] = cation_index;
 }
-*/
 
 /*
 void insert_new_coord_info(struct oxygen_coord_info* array, int metal_index)
@@ -77,27 +74,23 @@ void delete_coord_time(struct oxygen_coord_info* array, int metal_index, FILE* o
 }
 */
 
-/*
 void swap_coordination_arrays(int*** first, int*** second)
 {
     int** tmp = *(first);
     (*first) = *(second);
     *(second) = tmp;
 }
-*/
 
-/*
-void clear_coordination_array(int** array, int first_index_max)
+void clear_coordination_array(int** array, int first_index_max, int second_index_max)
 {
     for(int i = 0; i < first_index_max; i++)
     {
-        for(int j = 0; j < MAX_COORDINATED_METALS; j++)
+        for(int j = 0; j < second_index_max; j++)
         {
             array[i][j] = BLANK;
         }
     }
 }
-*/
 
 /*
 void save_data_from_array(struct oxygen_coord_info* array, FILE* output_file)
@@ -191,79 +184,101 @@ void calculate_coord_times_solvent(struct system_info* system_info, struct solve
 }
 */
 
-/*
-struct metal_coord_info get_coordination_info(int metal_index, struct vector metal_position, struct coordination_input* coordination_input)
+struct cation_coord_info get_coordination_info(int cation_index, int cation_tracked_positions_number, struct vector* cation_tracked_positions, struct coordination_input* coordination_input)
 {
-    struct metal_coord_info result;
+    struct cation_coord_info result;
     result.solvent_molecules = 0;
     result.anion_molecules = 0;
-    result.anion_oxygens = 0;
+    result.anion_atoms = 0;
     result.coordination_number = 0;
 
     struct program_configuration* program_configuration = coordination_input->program_configuration;
     int solvent_history_index = 0;
     int anion_atoms_history_index = 0;
     int anion_history_index = 0;
-    int solvent_oxygen_index = 0;
+    int solvent_molecule_index = 0;
 
+    int solvent_shift = 0;
     int compound_index = 0;
     for(int i = 0; i < coordination_input->system_info->solvent_types_number; i++)
     {
-        compound_index = get_next_solvent_index(compound_index, coordination_input->system_info->compounds, coordination_input->system_info->compounds_number);
+        compound_index = get_next_entry_index(compound_index, coordination_input->system_info->compounds, coordination_input->system_info->compounds_number, solvent);
         for(int j = 0; j < coordination_input->system_info->compounds[compound_index].quantity; j++)
         {
-            if(detect_coordination(metal_position, coordination_input->solvent_oxygens[i][j], program_configuration->solvent_threshold, program_configuration->box_size) == 1)
-            {
-                result.coordination_number++;
-                result.solvent_molecules++;
+            solvent_molecule_index = solvent_shift + j;
 
-                if(program_configuration->calculate_solvent_residence == 1)
+            for(int k = 0; k < coordination_input->system_info->compounds[compound_index].tracked_atoms_number; k++)
+            {
+                for(int l = 0; l < cation_tracked_positions_number; l++)
                 {
-                    coordination_input->solvent_coordination_histories[i][coordination_input->step_number][metal_index][solvent_history_index] = j;
-                    solvent_history_index++;
+                    if(detect_coordination(cation_tracked_positions[l], coordination_input->solvent_tracked_atoms[i][j][k], program_configuration->solvent_threshold, program_configuration->box_size) == 1)
+                    {
+                        result.coordination_number++;
+                        result.solvent_molecules++;
+
+                        if(program_configuration->calculate_solvent_residence == 1)
+                        {
+                            coordination_input->solvent_coordination_history[i][coordination_input->step_number][cation_index][solvent_history_index] = j;
+                            solvent_history_index++;
+                        }
+                        
+                        mark_coordination(cation_index, coordination_input->current_solvent_coordination[solvent_molecule_index][k]);
+                    }
                 }
-                
-                mark_coordination(metal_index, coordination_input->current_solvent_coordination[solvent_oxygen_index]);
             }
-            
-            solvent_oxygen_index++;
         }
 
         solvent_history_index = 0;
+        solvent_shift += coordination_input->system_info->compounds[compound_index].quantity;
     }
 
-    for(int i = 0; i < coordination_input->system_info->anions_number; i++)
+    int anion_shift = 0;
+    compound_index = 0;
+    for(int i = 0; i < coordination_input->system_info->anion_types_number; i++)
     {
-        int is_metal_coordinated_by_anion = 0;
-        for(int j = 0; j < TRACKED_O_ATOMS_ANION; j++)
+        compound_index = get_next_entry_index(compound_index, coordination_input->system_info->compounds, coordination_input->system_info->compounds_number, anion);
+        struct system_compound current_compound = coordination_input->system_info->compounds[compound_index];
+
+        for(int j = 0; j < current_compound.quantity; j++)
         {
-            if(detect_coordination(metal_position, coordination_input->anion_oxygens[i][j], program_configuration->anion_threshold, program_configuration->box_size) == 1)
+            int anion_index = anion_shift + j;
+            int is_cation_coordinated_by_anion = 0;
+
+            for(int k = 0; k < current_compound.tracked_atoms_number; k++)
             {
-                result.coordination_number++;
-                result.anion_oxygens++;
-                is_metal_coordinated_by_anion = 1;
+                for(int l = 0; l < cation_tracked_positions_number; l++)
+                {
+                    if(detect_coordination(cation_tracked_positions[l], coordination_input->anion_tracked_atoms[anion_index][k], program_configuration->anion_threshold, program_configuration->box_size) == 1)
+                    {
+                        result.coordination_number++;
+                        result.anion_atoms++;
+                        is_cation_coordinated_by_anion = 1;
+
+                        if(program_configuration->calculate_anion_residence == 1)
+                        {
+                            coordination_input->anion_atoms_coordination_history[coordination_input->step_number][cation_index][anion_atoms_history_index] = anion_index * current_compound.tracked_atoms_number + k;
+                            anion_atoms_history_index++;
+                        }
+
+                        mark_coordination(cation_index, coordination_input->current_anion_coordination[anion_index][k]);
+                    }
+                }
+            }
+
+            if(is_cation_coordinated_by_anion == 1)
+            {
+                result.anion_molecules++;
 
                 if(program_configuration->calculate_anion_residence == 1)
                 {
-                    coordination_input->anion_atoms_coordination_history[coordination_input->step_number][metal_index][anion_atoms_history_index] = i * TRACKED_O_ATOMS_ANION + j;
-                    anion_atoms_history_index++;
+                    coordination_input->anion_coordination_history[coordination_input->step_number][cation_index][anion_history_index] = anion_index;
+                    anion_history_index++;
                 }
-
-                mark_coordination(metal_index, coordination_input->current_anion_coordination[i][j]);
             }
         }
 
-        if(is_metal_coordinated_by_anion == 1)
-        {
-            result.anion_molecules++;
-
-            if(program_configuration->calculate_anion_residence == 1)
-            {
-                coordination_input->anion_coordination_history[coordination_input->step_number][metal_index][anion_history_index] = i;
-                anion_history_index++;
-            }
-        }
+        anion_shift += current_compound.quantity;
     }
 
     return result;
-}*/
+}

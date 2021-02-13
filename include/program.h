@@ -60,10 +60,10 @@ struct ligand_coord_info {
     int time;
 };
 
-struct metal_coord_info {
+struct cation_coord_info {
     int coordination_number;
     int solvent_molecules;
-    int anion_oxygens;
+    int anion_atoms;
     int anion_molecules;
 };
 
@@ -76,11 +76,11 @@ struct entry_data {
 
 struct coordination_input {
     int step_number;
-    struct vector** solvent_oxygens;
-    struct vector** anion_oxygens;
-    int** current_solvent_coordination;
+    struct vector*** solvent_tracked_atoms;
+    struct vector** anion_tracked_atoms;
+    int*** current_solvent_coordination;
     int*** current_anion_coordination;
-    short int**** solvent_coordination_histories;
+    short int**** solvent_coordination_history;
     short int*** anion_atoms_coordination_history;
     short int*** anion_coordination_history;
     struct system_info* system_info; 
@@ -89,11 +89,11 @@ struct coordination_input {
 
 // coordination.c
 void swap_coordination_arrays(int*** first, int*** second);
-void clear_coordination_array(int** array, int first_index_max);
+void clear_coordination_array(int** array, int first_index_max, int second_index_max);
 void save_last_step_data(struct ligand_coord_info** solvent_data, struct ligand_coord_info*** anion_data, struct system_info* system_info, FILE* solvent_output, FILE* anion_output);
 void calculate_coord_times_solvent(struct system_info* system_info, struct entry_data* solvent_data);
 void calculate_coord_times_anion(struct system_info* system_info, struct entry_data* anion_data);
-struct metal_coord_info get_coordination_info(int metal_index, struct vector metal_position, struct coordination_input* coordination_input);
+struct cation_coord_info get_coordination_info(int cation_index, int cation_tracked_positions_number, struct vector* cation_tracked_positions, struct coordination_input* coordination_input);
 
 // io.c
 void print_usage(FILE* stream, int exit_code);
@@ -105,7 +105,8 @@ void format_atom_symbol(char* input_text);
 void raise_error(const char* message);
 
 // reading_utils.c
-void check_symbol(char* read, char* expected);
+void check_symbol(const char* read, const char* expected);
+int get_next_entry_index(int current_index, struct system_compound* compounds, int compounds_number, enum entry_type entry_type);
 void read_data(struct program_configuration* program_configuration, struct system_info* system_info);
 
 // residence.c
