@@ -479,10 +479,9 @@ void read_data(struct program_configuration* program_configuration, struct syste
             cation_shift += current_cation.quantity;
         }
 
-/*
-        calculate_coord_times_solvent(system_info, &solvent_data);
-        calculate_coord_times_anion(system_info, &anion_data);
-*/
+        calculate_coord_times(system_info, &solvent_data, solvent);
+        calculate_coord_times(system_info, &anion_data, anion);
+        
         int solvent_shift = 0;
         compound_index = -1;
         for(int i = 0; i < system_info->solvent_types_number; i++)
@@ -519,9 +518,10 @@ void read_data(struct program_configuration* program_configuration, struct syste
 
         step_number++;
     }
-/*
-    save_last_step_data(carbonate_coordination_info, tfsi_coordination_info, system_info, carbonate_output_file, tfsi_output_file);
-*/
+
+    save_last_step_data(system_info, &solvent_data, solvent);
+    save_last_step_data(system_info, &anion_data, anion);
+    
     // calculate correlated residence times
     if(program_configuration->calculate_solvent_residence == 1)
     {

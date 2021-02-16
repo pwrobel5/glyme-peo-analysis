@@ -22,30 +22,27 @@ void mark_coordination(int cation_index, int* ligand_coordination)
     ligand_coordination[index] = cation_index;
 }
 
-/*
-void insert_new_coord_info(struct oxygen_coord_info* array, int metal_index)
+void insert_new_coord_info(struct ligand_coord_info* array, int cation_index)
 {
     int index = 0;
-    while(array[index].metal_ion_index != BLANK && index < MAX_COORDINATED_METALS) index++;
+    while(array[index].cation_index != BLANK && index < MAX_COORDINATED_CATIONS) index++;
 
-    if(index == MAX_COORDINATED_METALS)
+    if(index == MAX_COORDINATED_CATIONS)
     { 
         errno = EINVAL;
         raise_error("No space left in coordination history array");
     }
 
-    array[index].metal_ion_index = metal_index;
+    array[index].cation_index = cation_index;
     array[index].time = 1;
 }
-*/
 
-/*
-int find_metal(struct oxygen_coord_info* array, int metal_index)
+int find_cation(struct ligand_coord_info* array, int cation_index)
 {
     int index = 0;
-    while(array[index].metal_ion_index != metal_index && index < MAX_COORDINATED_METALS) index++;
+    while(array[index].cation_index != cation_index && index < MAX_COORDINATED_CATIONS) index++;
 
-    if(index == MAX_COORDINATED_METALS)
+    if(index == MAX_COORDINATED_CATIONS)
     {
         errno = EINVAL;
         raise_error("Invalid metal ion index to increase time");
@@ -53,26 +50,21 @@ int find_metal(struct oxygen_coord_info* array, int metal_index)
 
     return index;
 }
-*/
 
-/*
-void increase_coord_time(struct oxygen_coord_info* array, int metal_index)
+void increase_coord_time(struct ligand_coord_info* array, int cation_index)
 {
-    int index = find_metal(array, metal_index);
+    int index = find_cation(array, cation_index);
     array[index].time++;
 }
-*/
 
-/*
-void delete_coord_time(struct oxygen_coord_info* array, int metal_index, FILE* output_file)
+void delete_coord_time(struct ligand_coord_info* array, int cation_index, FILE* output_file)
 {
-    int index = find_metal(array, metal_index);
+    int index = find_cation(array, cation_index);
     fprintf(output_file, "%d\n", array[index].time);
 
     array[index].time = 0;
-    array[index].metal_ion_index = BLANK;
+    array[index].cation_index = BLANK;
 }
-*/
 
 void swap_coordination_arrays(int*** first, int*** second)
 {
@@ -92,45 +84,46 @@ void clear_coordination_array(int** array, int first_index_max, int second_index
     }
 }
 
-/*
-void save_data_from_array(struct oxygen_coord_info* array, FILE* output_file)
+void save_data_from_array(struct ligand_coord_info* array, FILE* output_file)
 {
-    for(int i = 0; i < MAX_COORDINATED_METALS; i++)
+    for(int i = 0; i < MAX_COORDINATED_CATIONS; i++)
     {
-        if(array[i].metal_ion_index != BLANK)
+        if(array[i].cation_index != BLANK)
             fprintf(output_file, "%d\n", array[i].time);
     }
 }
-*/
 
-/*
-void save_last_step_data(struct oxygen_coord_info** solvent_data, struct oxygen_coord_info*** anion_data, struct system_info* system_info, FILE* solvent_output, FILE* anion_output)
+void save_last_step_data(struct system_info* system_info, struct entry_data* entry_data, enum entry_type entry_type)
 {
-    for(int i = 0; i < system_info->solvent_molecules_number; i++)
-    {
-        save_data_from_array(solvent_data[i], solvent_output);
-    }
+    int shift = 0;
+    int compound_index = -1;
+    int types_number = (entry_type == solvent) ? system_info->solvent_types_number : system_info->anion_types_number;
 
-    for(int i = 0; i < system_info->anions_number; i++)
+    for(int i = 0; i < types_number; i++)
     {
-        for(int j = 0; j < TRACKED_O_ATOMS_ANION; j++)
+        compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, entry_type);
+        struct system_compound current_compound = system_info->compounds[compound_index];
+
+        for(int j = 0; j < current_compound.quantity; j++)
         {
-            save_data_from_array(anion_data[i][j], anion_output);
+            int current_index = j + shift;
+            for(int k = 0; k < current_compound.tracked_atoms_number; k++)
+            {
+                save_data_from_array(entry_data->coordination_info[current_index][k], entry_data->output);
+            }
         }
     }
 }
-*/
 
-/*
-void calculate_coord_times(int molecules_number, int** current_coordination, int** last_coordination, 
-                                      struct oxygen_coord_info** coordination_info, FILE* output_file)
+void calculate_coord_times_molecule(int tracked_atoms_number, int** current_coordination, int** last_coordination, 
+                                      struct ligand_coord_info** coordination_info, FILE* output_file)
 {
-    for(int i = 0; i < molecules_number; i++)
+    for(int i = 0; i < tracked_atoms_number; i++)
     {
         int last_index = 0;
         int current_index = 0;
 
-        while(current_index < MAX_COORDINATED_METALS && last_index < MAX_COORDINATED_METALS &&
+        while(current_index < MAX_COORDINATED_CATIONS && last_index < MAX_COORDINATED_CATIONS &&
               last_coordination[i][last_index] != BLANK && current_coordination[i][current_index] != BLANK)
         {
             if(last_coordination[i][last_index] == current_coordination[i][current_index])
@@ -151,38 +144,41 @@ void calculate_coord_times(int molecules_number, int** current_coordination, int
             }
         }
 
-        while(current_index < MAX_COORDINATED_METALS && current_coordination[i][current_index] != BLANK)
+        while(current_index < MAX_COORDINATED_CATIONS && current_coordination[i][current_index] != BLANK)
         {
             insert_new_coord_info(coordination_info[i], current_coordination[i][current_index]);
             current_index++;
         }
 
-        while(last_index < MAX_COORDINATED_METALS && last_coordination[i][last_index] != BLANK)
+        while(last_index < MAX_COORDINATED_CATIONS && last_coordination[i][last_index] != BLANK)
         {
             delete_coord_time(coordination_info[i], last_coordination[i][last_index], output_file);
             last_index++;
         }
     }
 }
-*/
 
-/*
-void calculate_coord_times_anion(struct system_info* system_info, struct anion_data* anion_data)
+void calculate_coord_times(struct system_info* system_info, struct entry_data* entry_data, enum entry_type entry_type)
 {
-    for(int i = 0; i < system_info->anions_number; i++)
+    int shift = 0;
+    int compound_index = -1;
+    int types_number = (entry_type == solvent) ? system_info->solvent_types_number : system_info->anion_types_number;
+
+    for(int i = 0; i < types_number; i++)
     {
-        calculate_coord_times(TRACKED_O_ATOMS_ANION, anion_data->current_anion_coordination[i], anion_data->last_anion_coordination[i], anion_data->anion_coordination_info[i], anion_data->anion_output);
+        compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, entry_type);
+        struct system_compound current_compound = system_info->compounds[compound_index];
+
+        for(int j = 0; j < current_compound.quantity; j++)
+        {
+            int current_index = j + shift;
+            calculate_coord_times_molecule(current_compound.tracked_atoms_number, entry_data->current_coordination[current_index], entry_data->last_coordination[current_index],
+                entry_data->coordination_info[current_index], entry_data->output);
+        }
+
+        shift += current_compound.quantity;
     }
 }
-*/
-
-/*
-void calculate_coord_times_solvent(struct system_info* system_info, struct solvent_data* solvent_data)
-{
-    calculate_coord_times(system_info->solvent_molecules_number, solvent_data->current_solvent_coordination, solvent_data->last_solvent_coordination,
-                          solvent_data->solvent_coordination_info, solvent_data->solvent_output);
-}
-*/
 
 struct cation_coord_info get_coordination_info(int cation_index, int cation_tracked_positions_number, struct vector* cation_tracked_positions, struct coordination_input* coordination_input)
 {

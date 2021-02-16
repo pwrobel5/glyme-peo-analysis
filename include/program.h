@@ -90,9 +90,8 @@ struct coordination_input {
 // coordination.c
 void swap_coordination_arrays(int*** first, int*** second);
 void clear_coordination_array(int** array, int first_index_max, int second_index_max);
-void save_last_step_data(struct ligand_coord_info** solvent_data, struct ligand_coord_info*** anion_data, struct system_info* system_info, FILE* solvent_output, FILE* anion_output);
-void calculate_coord_times_solvent(struct system_info* system_info, struct entry_data* solvent_data);
-void calculate_coord_times_anion(struct system_info* system_info, struct entry_data* anion_data);
+void save_last_step_data(struct system_info* system_info, struct entry_data* entry_data, enum entry_type entry_type);
+void calculate_coord_times(struct system_info* system_info, struct entry_data* entry_data, enum entry_type entry_type);
 struct cation_coord_info get_coordination_info(int cation_index, int cation_tracked_positions_number, struct vector* cation_tracked_positions, struct coordination_input* coordination_input);
 
 // io.c
