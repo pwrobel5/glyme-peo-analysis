@@ -81,8 +81,8 @@ struct coordination_input {
     int*** current_solvent_coordination;
     int*** current_anion_coordination;
     short int**** solvent_coordination_history;
-    short int*** anion_atoms_coordination_history;
-    short int*** anion_coordination_history;
+    short int**** anion_atoms_coordination_history;
+    short int**** anion_coordination_history;
     struct system_info* system_info; 
     struct program_configuration* program_configuration;
 };

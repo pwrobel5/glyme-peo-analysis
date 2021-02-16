@@ -62,6 +62,7 @@ void parse_system_info_line(struct system_compound* compound, char* buffer)
     tmp = strtok(NULL, SEPARATOR);
     compound->compound_name = malloc(COMPOUND_NAME_LENGTH * sizeof(char));
     if(compound->compound_name == NULL) raise_error("Error with memory allocation for compound name");
+    strcpy(compound->compound_name, tmp);
 
     tmp = strtok(NULL, SEPARATOR);
     compound->first_atom_symbol = malloc(ATOM_SYMBOL_LENGTH * sizeof(char));

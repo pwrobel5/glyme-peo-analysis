@@ -53,7 +53,6 @@ short int*** initialize_history_array(short int*** array, int step_number, struc
     return tmp;
 }
 
-/*
 double* calculate_residence_times(short*** history_array, int steps, int denominator, struct system_info* system_info)
 {
     double* residence = malloc(steps * sizeof(double));
@@ -68,10 +67,10 @@ double* calculate_residence_times(short*** history_array, int steps, int denomin
         residence[0]++;
         
         double zeros_av = 0.0;
-        for(int met_ion = 0; met_ion < system_info->metal_ions_number; met_ion++)
+        for(int cation_index = 0; cation_index < system_info->cations_number; cation_index++)
         {
             int j = 0;
-            while(history_array[i][met_ion][j] != BLANK)
+            while(history_array[i][cation_index][j] != BLANK)
             {
                 zeros_av++;
                 j++;
@@ -82,20 +81,20 @@ double* calculate_residence_times(short*** history_array, int steps, int denomin
         for(int j = i + 1; j < steps; j++)
         {
             double current_av = 0.0;
-            for(int met_ion = 0; met_ion < system_info->metal_ions_number; met_ion++)
+            for(int cation_index = 0; cation_index < system_info->cations_number; cation_index++)
             {
                 int zero_index = 0;
                 int current_index = 0;
 
-                while(current_index < MAX_COORDINATION_NUMBER && zero_index < MAX_COORDINATION_NUMBER && history_array[i][met_ion][zero_index] != BLANK && history_array[j][met_ion][current_index] != BLANK)
+                while(current_index < MAX_COORDINATION_NUMBER && zero_index < MAX_COORDINATION_NUMBER && history_array[i][cation_index][zero_index] != BLANK && history_array[j][cation_index][current_index] != BLANK)
                 {
-                    while(history_array[i][met_ion][zero_index] < history_array[j][met_ion][current_index] && history_array[i][met_ion][zero_index] != BLANK)
+                    while(history_array[i][cation_index][zero_index] < history_array[j][cation_index][current_index] && history_array[i][cation_index][zero_index] != BLANK)
                         zero_index++;
                     
-                    while(history_array[j][met_ion][current_index] < history_array[i][met_ion][zero_index] && history_array[j][met_ion][current_index] != BLANK)
+                    while(history_array[j][cation_index][current_index] < history_array[i][cation_index][zero_index] && history_array[j][cation_index][current_index] != BLANK)
                         current_index++;
                     
-                    if(history_array[i][met_ion][zero_index] == history_array[j][met_ion][current_index])
+                    if(history_array[i][cation_index][zero_index] == history_array[j][cation_index][current_index])
                         current_av += 1.0;
                     
                     zero_index++;
@@ -117,9 +116,7 @@ double* calculate_residence_times(short*** history_array, int steps, int denomin
 
     return residence;
 }
-*/
 
-/*
 void save_residence_to_file(double* residence, const char* residence_file_name, int steps)
 {
     FILE* residence_output = fopen(residence_file_name, "w");
@@ -132,4 +129,4 @@ void save_residence_to_file(double* residence, const char* residence_file_name, 
     }
 
     fclose(residence_output);
-}*/
+}

@@ -252,7 +252,7 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
 
                         if(program_configuration->calculate_anion_residence == 1)
                         {
-                            coordination_input->anion_atoms_coordination_history[coordination_input->step_number][cation_index][anion_atoms_history_index] = anion_index * current_compound.tracked_atoms_number + k;
+                            coordination_input->anion_atoms_coordination_history[i][coordination_input->step_number][cation_index][anion_atoms_history_index] = anion_index * current_compound.tracked_atoms_number + k;
                             anion_atoms_history_index++;
                         }
 
@@ -267,7 +267,7 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
 
                 if(program_configuration->calculate_anion_residence == 1)
                 {
-                    coordination_input->anion_coordination_history[coordination_input->step_number][cation_index][anion_history_index] = anion_index;
+                    coordination_input->anion_coordination_history[i][coordination_input->step_number][cation_index][anion_history_index] = anion_index;
                     anion_history_index++;
                 }
             }

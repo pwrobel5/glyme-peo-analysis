@@ -386,13 +386,18 @@ void read_data(struct program_configuration* program_configuration, struct syste
         raise_error("Error with memory allocation for reading buffer");
     
     // arrays for saving numbers of coordinated molecules to given metal ion at a given timestep
-    short int*** anion_atoms_coordination_history = NULL;
-    short int*** anion_coordination_history = NULL;
+    short int**** anion_atoms_coordination_history = malloc(sizeof(short int***) * system_info->anion_types_number);
+    short int**** anion_coordination_history = malloc(sizeof(short int***) * system_info->anion_types_number);
     short int**** solvent_coordination_history = malloc(sizeof(short int***) * system_info->solvent_types_number);
-    if(solvent_coordination_history == NULL) raise_error("Error with memory allocation for carbonate coordination histories array");
+    if(solvent_coordination_history == NULL || anion_coordination_history == NULL || anion_atoms_coordination_history == NULL) raise_error("Error with memory allocation for coordination histories array");
     for(int i = 0; i < system_info->solvent_types_number; i++)
     {
         solvent_coordination_history[i] = NULL;
+    }
+    for(int i = 0; i < system_info->anion_types_number; i++)
+    {
+        anion_coordination_history[i] = NULL;
+        anion_atoms_coordination_history[i] = NULL;
     }
 
     int step_number = 0;
@@ -414,8 +419,11 @@ void read_data(struct program_configuration* program_configuration, struct syste
         
         if(program_configuration->calculate_anion_residence == 1)
         {
-            anion_atoms_coordination_history = initialize_history_array(anion_atoms_coordination_history, step_number, system_info);
-            anion_coordination_history = initialize_history_array(anion_coordination_history, step_number, system_info);
+            for(int i = 0; i < system_info->anion_types_number; i++)
+            {
+                anion_atoms_coordination_history[i] = initialize_history_array(anion_atoms_coordination_history[i], step_number, system_info);
+                anion_coordination_history[i] = initialize_history_array(anion_coordination_history[i], step_number, system_info);
+            }
         }
 
         // omit commentary line
@@ -521,51 +529,58 @@ void read_data(struct program_configuration* program_configuration, struct syste
 
     save_last_step_data(system_info, &solvent_data, solvent);
     save_last_step_data(system_info, &anion_data, anion);
-    
+
     // calculate correlated residence times
     if(program_configuration->calculate_solvent_residence == 1)
     {
-        //int compound_index = 0;
+        int compound_index = -1;
         for(int i = 0; i < system_info->solvent_types_number; i++) {
-            //compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, solvent);
-            //struct system_compound current_compound = system_info->compounds[compound_index];
-
-            /*
-            int denominator = system_info->metal_ions_number * system_info->compounds[compound_index].quantity;
-            double* residence = calculate_residence_times(carbonate_coordination_histories[i], step_number, denominator, system_info);
-            */
+            compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, solvent);
+            struct system_compound current_compound = system_info->compounds[compound_index];
+            
+            int denominator = system_info->cations_number * system_info->compounds[compound_index].quantity;
+            double* residence = calculate_residence_times(solvent_coordination_history[i], step_number, denominator, system_info);
             delete_history_array(solvent_coordination_history[i], step_number, system_info->cations_number);
 
-            /*
-            char residence_output_name[OUTPUT_FILE_NAME_LENGTH] = "carbonate-residence-times-";
-            char* molecule_name = entry_type_to_str(current_compound.molecule_type);
-            strcat(residence_output_name, molecule_name);
+            char residence_output_name[OUTPUT_FILE_NAME_LENGTH] = "residence-times-";
+            strcat(residence_output_name, current_compound.compound_name);
             strcat(residence_output_name, ".dat");
             save_residence_to_file(residence, residence_output_name, step_number);
             free(residence);
-            free(molecule_name);
-            */
         }
     }
     if(program_configuration->calculate_anion_residence == 1)
     {
-        /*
-        int molecules_denominator = system_info->metal_ions_number * system_info->anions_number;
-        double* molecules_residence = calculate_residence_times(tfsi_coordination_history, step_number, molecules_denominator, system_info);
-        */
-        delete_history_array(anion_coordination_history, step_number, system_info->cations_number);
-        /*
-        save_residence_to_file(molecules_residence, "tfsi-residence-times.dat", step_number);
-        free(molecules_residence);
+        int compound_index = -1;
+        for(int i = 0; i < system_info->anion_types_number; i++) {
+            compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, anion);
+            struct system_compound current_compound = system_info->compounds[compound_index];
 
-        int atoms_denominator = molecules_denominator * TRACKED_O_ATOMS_ANION;
-        double* atoms_residence = calculate_residence_times(tfsi_atoms_coordination_history, step_number, atoms_denominator, system_info);*/
-        delete_history_array(anion_atoms_coordination_history, step_number, system_info->cations_number);
-        /*save_residence_to_file(atoms_residence, "tfsi-atoms-residence-times.dat", step_number);
-        free(atoms_residence);  */      
+            int molecules_denominator = system_info->cations_number * current_compound.quantity;
+            double* molecules_residence = calculate_residence_times(anion_coordination_history[i], step_number, molecules_denominator, system_info);
+            delete_history_array(anion_coordination_history[i], step_number, system_info->cations_number);
+            
+            char residence_output_name[OUTPUT_FILE_NAME_LENGTH] = "residence-times-";
+            strcat(residence_output_name, current_compound.compound_name);
+            strcat(residence_output_name, ".dat");
+            save_residence_to_file(molecules_residence, residence_output_name, step_number);
+            free(molecules_residence);
+            
+            int atoms_denominator = molecules_denominator * current_compound.tracked_atoms_number;
+            double* atoms_residence = calculate_residence_times(anion_atoms_coordination_history[i], step_number, atoms_denominator, system_info);
+            delete_history_array(anion_atoms_coordination_history[i], step_number, system_info->cations_number);
+
+            char atoms_residence_output_name[OUTPUT_FILE_NAME_LENGTH] = "residence-times-atoms-";
+            strcat(atoms_residence_output_name, current_compound.compound_name);
+            strcat(atoms_residence_output_name, ".dat");
+            save_residence_to_file(atoms_residence, atoms_residence_output_name, step_number);
+            free(atoms_residence);
+        }              
     }
 
     free(solvent_coordination_history);
+    free(anion_coordination_history);
+    free(anion_atoms_coordination_history);
     free(buffer);
 
     free_coordination_arrays(solvent_data, system_info, solvent);
