@@ -214,7 +214,7 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
 
                         if(program_configuration->calculate_solvent_residence == 1)
                         {
-                            coordination_input->solvent_coordination_history[i][coordination_input->step_number][cation_index][solvent_history_index] = j;
+                            coordination_input->solvent_coordination_history[i][coordination_input->step_number][cation_index][solvent_history_index] = solvent_molecule_index;
                             solvent_history_index++;
                         }
                         

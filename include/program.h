@@ -25,6 +25,7 @@ struct program_configuration {
     enum print_mode print_mode;
     int calculate_solvent_residence;
     int calculate_anion_residence;
+    int calculate_venn_diagrams;
 };
 
 struct system_compound {
@@ -87,6 +88,38 @@ struct coordination_input {
     struct program_configuration* program_configuration;
 };
 
+struct index_set {
+    int size;
+    int* indices;
+};
+
+struct index_combinations {
+    int combinations_number;
+    struct index_set* combinations;
+};
+
+struct venn_entry {
+    int entry_id_size;
+    int* entry_id;
+    struct index_set* set;
+};
+
+struct venn_set {
+    int entries_number;
+    struct venn_entry* entries;
+};
+
+struct venn_diagram_entry {
+    int entry_id_size;
+    int* entry_id;
+    int set_size;
+};
+
+struct venn_diagram {
+    int entries_number;
+    struct venn_diagram_entry* entries;
+};
+
 // coordination.c
 void swap_coordination_arrays(int*** first, int*** second);
 void clear_coordination_array(int** array, int first_index_max, int second_index_max);
@@ -113,6 +146,23 @@ void delete_history_array(short int*** array, int step_number, int metal_ions);
 short int*** initialize_history_array(short int*** array, int step_number, struct system_info* sys_info);
 double* calculate_residence_times(short*** history_array, int steps, int denominator, struct system_info* system_info);
 void save_residence_to_file(double* residence, const char* residence_file_name, int steps);
+
+// set.c
+struct index_combinations* get_index_combinations(int tracked_atoms_number);
+void free_index_combinations(struct index_combinations* index_combinations);
+struct index_set* set_intersection(struct index_set* A, struct index_set* B);
+struct index_set* set_difference(struct index_set* A, struct index_set* B);
+void free_set(struct index_set* set);
+struct index_set* make_set(int array_size, int* array);
+void determine_venn_sets(struct venn_set* venn_set, int** current_coordination, int tracked_atoms_number, struct index_combinations* index_combinations);
+void print_venn_set(struct venn_set* venn_set);
+void free_venn_set(struct venn_set* venn_set);
+struct venn_diagram* create_empty_venn_diagram(int tracked_atoms_number, struct index_combinations* index_combinations);
+struct venn_diagram* determine_venn_diagram(struct venn_set* venn_set, int tracked_atoms_number);
+void print_venn_diagram(struct venn_diagram* venn_diagram);
+void free_venn_diagram(struct venn_diagram* venn_diagram);
+void update_global_venn_diagram(struct venn_diagram* global, struct venn_diagram* local);
+void save_averages_to_file(struct venn_diagram** venn_diagrams, int step_number, char* output_file_name);
 
 // system_info.c
 enum entry_type str_to_entry_type(const char* input_text);

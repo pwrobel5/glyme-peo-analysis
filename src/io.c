@@ -19,7 +19,8 @@ void print_usage(FILE* stream, int exit_code)
             "\t-b --box-size\t\t\tdeclare box size, default: %f\n"
             "\t-o --one-output\t\t\tproduce one output file for coordination\n"
             "\t-r --solvent-residence\t\tcalculate residence times for solvent molecules\n"
-            "\t-f --anion-residence\t\tcalculate residence times for anions\n\n",
+            "\t-f --anion-residence\t\tcalculate residence times for anions\n"
+            "\t-v --venn\t\t\tcalculate data for Venn diagrams\n\n",
             DEFAULT_SOLVENT_THRESHOLD,
             DEFAULT_ANION_THRESHOLD,
             DEFAULT_BOX_SIZE);
@@ -38,6 +39,7 @@ struct program_configuration* read_configuration(int argc, char* argv[])
         { "one-output",          0, NULL, 'o' },
         { "solvent-residence",   0, NULL, 'r' },
         { "anion-residence",     0, NULL, 'f' },
+        { "venn",                0, NULL, 'v' },
         { NULL,                  0, NULL,  0  }
     };
 
@@ -52,6 +54,7 @@ struct program_configuration* read_configuration(int argc, char* argv[])
     program_configuration->print_mode = separate;
     program_configuration->calculate_solvent_residence = 0;
     program_configuration->calculate_anion_residence = 0;
+    program_configuration->calculate_venn_diagrams = 0;
 
     do {
         next_option = getopt_long(argc, argv, short_options, long_options, NULL);
@@ -77,6 +80,9 @@ struct program_configuration* read_configuration(int argc, char* argv[])
                 break;
             case 'f':
                 program_configuration->calculate_anion_residence = 1;
+                break;
+            case 'v':
+                program_configuration->calculate_venn_diagrams = 1;
                 break;
             case '?':
                 print_usage(stderr, EXIT_FAILURE);

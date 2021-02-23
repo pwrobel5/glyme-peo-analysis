@@ -299,6 +299,15 @@ void read_data(struct program_configuration* program_configuration, struct syste
     struct vector** anion_tracked_positions = malloc(system_info->anions_number * sizeof(struct vector*));
     if(cation_tracked_positions == NULL || solvent_tracked_positions == NULL || anion_tracked_positions == NULL)
         raise_error("Error with allocation of arrays for atoms positions");
+
+    struct index_combinations** solvent_index_combinations = NULL;
+    struct venn_set** venn_set = NULL;
+    if(program_configuration->calculate_venn_diagrams == 1)
+    {
+        solvent_index_combinations = malloc(system_info->solvent_types_number * sizeof(struct index_combinations*));
+        venn_set = malloc(system_info->solvent_types_number * sizeof(struct venn_set*));
+        if(solvent_index_combinations == NULL || venn_set == NULL) raise_error("Error with allocation of data structures for Venn diagrams");
+    }
     
     int cation_index = 0;
     int solvent_type_index = 0;
@@ -328,6 +337,11 @@ void read_data(struct program_configuration* program_configuration, struct syste
                 {
                     solvent_tracked_positions[solvent_type_index][j] = malloc(current_compound.tracked_atoms_number * sizeof(struct vector));
                     if(solvent_tracked_positions[solvent_type_index][j] == NULL) raise_error("Error with memory allocation for solvent tracked positions");
+                }
+                if(program_configuration->calculate_venn_diagrams == 1) {
+                    solvent_index_combinations[solvent_type_index] = get_index_combinations(current_compound.tracked_atoms_number);
+                    venn_set[solvent_type_index] = malloc(current_compound.quantity * sizeof(struct venn_set));
+                    if(venn_set[solvent_type_index] == NULL) raise_error("Error with memory allocation for Venn set");
                 }
                 solvent_type_index++;
                 break;
@@ -390,9 +404,13 @@ void read_data(struct program_configuration* program_configuration, struct syste
     short int**** anion_coordination_history = malloc(sizeof(short int***) * system_info->anion_types_number);
     short int**** solvent_coordination_history = malloc(sizeof(short int***) * system_info->solvent_types_number);
     if(solvent_coordination_history == NULL || anion_coordination_history == NULL || anion_atoms_coordination_history == NULL) raise_error("Error with memory allocation for coordination histories array");
+
+    struct venn_diagram*** venn_diagrams = malloc(system_info->solvent_types_number * sizeof(struct venn_diagram**));
+    if(venn_diagrams == NULL) raise_error("Error with memory allocation for Venn diagrams array");
     for(int i = 0; i < system_info->solvent_types_number; i++)
     {
         solvent_coordination_history[i] = NULL;
+        venn_diagrams[i] = NULL;
     }
     for(int i = 0; i < system_info->anion_types_number; i++)
     {
@@ -423,6 +441,21 @@ void read_data(struct program_configuration* program_configuration, struct syste
             {
                 anion_atoms_coordination_history[i] = initialize_history_array(anion_atoms_coordination_history[i], step_number, system_info);
                 anion_coordination_history[i] = initialize_history_array(anion_coordination_history[i], step_number, system_info);
+            }
+        }
+
+        if(program_configuration->calculate_venn_diagrams == 1)
+        {
+            int compound_index = -1;
+
+            for(int i = 0; i < system_info->solvent_types_number; i++)
+            {
+                compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, solvent);
+                struct system_compound current_compound = system_info->compounds[compound_index];
+
+                venn_diagrams[i] = realloc(venn_diagrams[i], (step_number + 1) * sizeof(struct venn_diagram*));
+                if(venn_diagrams[i] == NULL) raise_error("Error with memory allocation for Venn diagrams");
+                venn_diagrams[i][step_number] = create_empty_venn_diagram(current_compound.tracked_atoms_number, solvent_index_combinations[i]);
             }
         }
 
@@ -500,6 +533,14 @@ void read_data(struct program_configuration* program_configuration, struct syste
             for(int j = 0; j < current_solvent.quantity; j++)
             {
                 int solvent_index = j + solvent_shift;
+
+                if(program_configuration->calculate_venn_diagrams == 1) {
+                    determine_venn_sets(&(venn_set[i][j]), solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, solvent_index_combinations[i]);
+                    struct venn_diagram* venn_diagram = determine_venn_diagram(&(venn_set[i][j]), current_solvent.tracked_atoms_number);
+                    update_global_venn_diagram(venn_diagrams[i][step_number], venn_diagram);
+                    free_venn_diagram(venn_diagram);
+                    free_venn_set(&(venn_set[i][j]));
+                }
                 swap_coordination_arrays(&(solvent_data.last_coordination[solvent_index]), &(solvent_data.current_coordination[solvent_index]));
                 clear_coordination_array(solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, MAX_COORDINATED_CATIONS);
             }
@@ -578,9 +619,31 @@ void read_data(struct program_configuration* program_configuration, struct syste
         }              
     }
 
+    if(program_configuration->calculate_venn_diagrams == 1)
+    {
+        int compound_index = -1;
+        for(int i = 0; i < system_info->solvent_types_number; i++)
+        {
+            compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, solvent);
+            struct system_compound current_compound = system_info->compounds[compound_index];
+
+            char venn_output_name[OUTPUT_FILE_NAME_LENGTH] = "venn-";
+            strcat(venn_output_name, current_compound.compound_name);
+            strcat(venn_output_name, ".dat");
+            save_averages_to_file(venn_diagrams[i], step_number, venn_output_name);
+
+            for(int j = 0; j < step_number; j++)
+            {
+                free_venn_diagram(venn_diagrams[i][j]);
+            }
+            free(venn_diagrams[i]);
+        }
+    }
+
     free(solvent_coordination_history);
     free(anion_coordination_history);
     free(anion_atoms_coordination_history);
+    free(venn_diagrams);
     free(buffer);
 
     free_coordination_arrays(solvent_data, system_info, solvent);
@@ -615,6 +678,11 @@ void read_data(struct program_configuration* program_configuration, struct syste
             free(solvent_tracked_positions[i][j]);
         }
         free(solvent_tracked_positions[i]);
+        if(program_configuration->calculate_venn_diagrams == 1)
+        { 
+            free_index_combinations(solvent_index_combinations[i]);
+            free(venn_set[i]);
+        }
     }
 
     for(int i = 0; i < system_info->anions_number; i++)
@@ -625,6 +693,11 @@ void read_data(struct program_configuration* program_configuration, struct syste
     free(cation_tracked_positions);
     free(solvent_tracked_positions);
     free(anion_tracked_positions);
+    if(program_configuration->calculate_venn_diagrams == 1) 
+    {
+        free(solvent_index_combinations);
+        free(venn_set);
+    }
     
     fclose(input_file);
 }
