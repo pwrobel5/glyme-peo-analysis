@@ -288,6 +288,44 @@ void free_coordination_arrays(struct entry_data entry_data, struct system_info* 
     free(coordination_info);
 }
 
+void open_solvent_data_files(FILE*** files, struct system_info* system_info)
+{
+    int compound_index = -1;
+    for(int i = 0; i < system_info->solvent_types_number; i++)
+    {
+        compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, solvent);
+        struct system_compound current_compound = system_info->compounds[compound_index];
+
+        files[i] = malloc(current_compound.quantity * sizeof(FILE*));
+        if(files[i] == NULL) raise_error("Error with memory allocation for solvent data files pointers");
+
+        for(int j = 0; j < current_compound.quantity; j++)
+        {
+            char file_name[OUTPUT_FILE_NAME_LENGTH];
+            sprintf(file_name, "%s-%03d.dat", current_compound.compound_name, j);
+            files[i][j] = fopen(file_name, "w");
+            if(files[i][j] == NULL) raise_error("Error with opening solvent data output file");
+        }
+    }
+}
+
+void close_solvent_data_files(FILE*** files, struct system_info* system_info)
+{
+    int compound_index = -1;
+    for(int i = 0; i < system_info->solvent_types_number; i++)
+    {
+        compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, solvent);
+        struct system_compound current_compound = system_info->compounds[compound_index];
+
+        for(int j = 0; j < current_compound.quantity; j++)
+        {
+            fclose(files[i][j]);
+        }
+
+        free(files[i]);
+    }
+}
+
 void read_data(struct program_configuration* program_configuration, struct system_info* system_info)
 {
     FILE* input_file = fopen(program_configuration->input_file_name, "r");
@@ -364,21 +402,29 @@ void read_data(struct program_configuration* program_configuration, struct syste
 
     FILE** cation_output_files;
     FILE* cation_output_file;
-    FILE* solvent_output_file = fopen("solvent_output.dat", "w");
-    FILE* anion_output_file = fopen("anion_output.dat", "w");
-    if(solvent_output_file == NULL || anion_output_file == NULL) raise_error("Error with opening output files");
+    FILE*** solvent_output_files;
+    FILE* solvent_times_file = fopen("solvent_times.dat", "w");
+    FILE* anion_times_file = fopen("anion_times.dat", "w");
+    if(solvent_times_file == NULL || anion_times_file == NULL) raise_error("Error with opening output files");
 
     if(program_configuration->print_mode == separate)
         cation_output_files = open_cation_files(system_info);
     else
         cation_output_file = fopen("cation_output.dat", "w");
+    
+    if(program_configuration->save_additional_solvent_data == 1)
+    {
+        solvent_output_files = malloc(system_info->solvent_types_number * sizeof(FILE**));
+        if(solvent_output_files == NULL) raise_error("Error with memory allocation for solvent output files pointers");
+        open_solvent_data_files(solvent_output_files, system_info);
+    }
 
     int*** last_solvent_coordination = malloc(system_info->solvent_molecules_number * sizeof(int**));
     int*** current_solvent_coordination = malloc(system_info->solvent_molecules_number * sizeof(int**));
     struct ligand_coord_info*** solvent_coordination_info = malloc(system_info->solvent_molecules_number * sizeof(struct ligand_coord_info**));
     
     struct entry_data solvent_data;
-    solvent_data.output = solvent_output_file;
+    solvent_data.output = solvent_times_file;
     solvent_data.last_coordination = last_solvent_coordination;
     solvent_data.current_coordination = current_solvent_coordination;
     solvent_data.coordination_info = solvent_coordination_info;
@@ -389,7 +435,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
     struct ligand_coord_info*** anion_coordination_info = malloc(system_info->anions_number * sizeof(struct oxygen_coord_info*));
 
     struct entry_data anion_data;
-    anion_data.output = anion_output_file;
+    anion_data.output = anion_times_file;
     anion_data.last_coordination = last_anion_coordination;
     anion_data.current_coordination = current_anion_coordination;
     anion_data.coordination_info = anion_coordination_info;
@@ -534,13 +580,20 @@ void read_data(struct program_configuration* program_configuration, struct syste
             {
                 int solvent_index = j + solvent_shift;
 
-                if(program_configuration->calculate_venn_diagrams == 1) {
+                if(program_configuration->calculate_venn_diagrams == 1) 
+                {
                     determine_venn_sets(&(venn_set[i][j]), solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, solvent_index_combinations[i]);
                     struct venn_diagram* venn_diagram = determine_venn_diagram(&(venn_set[i][j]), current_solvent.tracked_atoms_number);
                     update_global_venn_diagram(venn_diagrams[i][step_number], venn_diagram);
                     free_venn_diagram(venn_diagram);
                     free_venn_set(&(venn_set[i][j]));
                 }
+
+                if(program_configuration->save_additional_solvent_data == 1)
+                {
+                    save_current_step_solvent_data(step_number, solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, system_info->cations_number, solvent_output_files[i][j]);
+                }
+
                 swap_coordination_arrays(&(solvent_data.last_coordination[solvent_index]), &(solvent_data.current_coordination[solvent_index]));
                 clear_coordination_array(solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, MAX_COORDINATED_CATIONS);
             }
@@ -640,6 +693,12 @@ void read_data(struct program_configuration* program_configuration, struct syste
         }
     }
 
+    if(program_configuration->save_additional_solvent_data == 1)
+    {
+        close_solvent_data_files(solvent_output_files, system_info);
+        free(solvent_output_files);
+    }
+
     free(solvent_coordination_history);
     free(anion_coordination_history);
     free(anion_atoms_coordination_history);
@@ -660,8 +719,8 @@ void read_data(struct program_configuration* program_configuration, struct syste
     else
         fclose(cation_output_file);    
 
-    fclose(solvent_output_file);
-    fclose(anion_output_file);
+    fclose(solvent_times_file);
+    fclose(anion_times_file);
 
     for(int i = 0; i < system_info->cations_number; i++)
     {

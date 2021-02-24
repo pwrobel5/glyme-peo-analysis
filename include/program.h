@@ -26,6 +26,7 @@ struct program_configuration {
     int calculate_solvent_residence;
     int calculate_anion_residence;
     int calculate_venn_diagrams;
+    int save_additional_solvent_data;
 };
 
 struct system_compound {
@@ -163,6 +164,9 @@ void print_venn_diagram(struct venn_diagram* venn_diagram);
 void free_venn_diagram(struct venn_diagram* venn_diagram);
 void update_global_venn_diagram(struct venn_diagram* global, struct venn_diagram* local);
 void save_averages_to_file(struct venn_diagram** venn_diagrams, int step_number, char* output_file_name);
+
+// solvent_data.c
+void save_current_step_solvent_data(int step_number, int** current_coordination, int tracked_atoms, int cations_number, FILE* output_file);
 
 // system_info.c
 enum entry_type str_to_entry_type(const char* input_text);

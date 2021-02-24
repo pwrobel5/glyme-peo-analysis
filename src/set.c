@@ -393,6 +393,7 @@ void save_averages_to_file(struct venn_diagram** venn_diagrams, int step_number,
     if(step_number <= 0) return;
 
     FILE* output_file = fopen(output_file_name, "w");
+    if(output_file == NULL) raise_error("Error with creating file for Venn diagram");
     int entries_number = venn_diagrams[0]->entries_number;
 
     for(int i = 0; i < entries_number; i++)
