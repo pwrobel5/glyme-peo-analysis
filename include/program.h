@@ -64,6 +64,7 @@ struct ligand_coord_info {
 
 struct cation_coord_info {
     int coordination_number;
+    int solvent_atoms;
     int solvent_molecules;
     int anion_atoms;
     int anion_molecules;

@@ -558,9 +558,9 @@ void read_data(struct program_configuration* program_configuration, struct syste
                 struct cation_coord_info coord_info = get_coordination_info(index, current_cation.tracked_atoms_number, cation_tracked_positions[index], &coordination_input);
 
                 if(program_configuration->print_mode == separate)
-                    fprintf(cation_output_files[index], "%d %d %d %d %d\n", step_number, coord_info.coordination_number, coord_info.solvent_molecules, coord_info.anion_atoms, coord_info.anion_molecules);
+                    fprintf(cation_output_files[index], "%d %d %d %d %d %d\n", step_number, coord_info.coordination_number, coord_info.solvent_atoms, coord_info.solvent_molecules, coord_info.anion_atoms, coord_info.anion_molecules);
                 else
-                    fprintf(cation_output_file, "%d %d %d %d %d\n", step_number, coord_info.coordination_number, coord_info.solvent_molecules, coord_info.anion_atoms, coord_info.anion_molecules);
+                    fprintf(cation_output_file, "%d %d %d %d %d %d\n", step_number, coord_info.coordination_number, coord_info.solvent_atoms, coord_info.solvent_molecules, coord_info.anion_atoms, coord_info.anion_molecules);
             }
 
             cation_shift += current_cation.quantity;

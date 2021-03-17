@@ -184,6 +184,7 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
 {
     struct cation_coord_info result;
     result.solvent_molecules = 0;
+    result.solvent_atoms = 0;
     result.anion_molecules = 0;
     result.anion_atoms = 0;
     result.coordination_number = 0;
@@ -202,6 +203,7 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
         for(int j = 0; j < coordination_input->system_info->compounds[compound_index].quantity; j++)
         {
             solvent_molecule_index = solvent_shift + j;
+            int is_cation_coordinated_by_solvent = 0;
 
             for(int k = 0; k < coordination_input->system_info->compounds[compound_index].tracked_atoms_number; k++)
             {
@@ -209,9 +211,9 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
                 {
                     if(detect_coordination(cation_tracked_positions[l], coordination_input->solvent_tracked_atoms[i][j][k], program_configuration->solvent_threshold, program_configuration->box_size) == 1)
                     {
-                        // TODO - these are not solvent molecules!!!
                         result.coordination_number++;
-                        result.solvent_molecules++;
+                        result.solvent_atoms++;
+                        is_cation_coordinated_by_solvent = 1;
 
                         if(program_configuration->calculate_solvent_residence == 1)
                         {
@@ -222,6 +224,11 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
                         mark_coordination(cation_index, coordination_input->current_solvent_coordination[solvent_molecule_index][k]);
                     }
                 }
+            }
+
+            if(is_cation_coordinated_by_solvent == 1)
+            {
+                result.solvent_molecules++;
             }
         }
 
