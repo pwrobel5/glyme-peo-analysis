@@ -448,14 +448,17 @@ void read_data(struct program_configuration* program_configuration, struct syste
     // arrays for saving numbers of coordinated molecules to given metal ion at a given timestep
     short int**** anion_atoms_coordination_history = malloc(sizeof(short int***) * system_info->anion_types_number);
     short int**** anion_coordination_history = malloc(sizeof(short int***) * system_info->anion_types_number);
+    short int**** solvent_atoms_coordination_history = malloc(sizeof(short int***) * system_info->solvent_types_number);
     short int**** solvent_coordination_history = malloc(sizeof(short int***) * system_info->solvent_types_number);
-    if(solvent_coordination_history == NULL || anion_coordination_history == NULL || anion_atoms_coordination_history == NULL) raise_error("Error with memory allocation for coordination histories array");
+    if(solvent_coordination_history == NULL || solvent_atoms_coordination_history == NULL || anion_coordination_history == NULL || anion_atoms_coordination_history == NULL) 
+        raise_error("Error with memory allocation for coordination histories array");
 
     struct venn_diagram*** venn_diagrams = malloc(system_info->solvent_types_number * sizeof(struct venn_diagram**));
     if(venn_diagrams == NULL) raise_error("Error with memory allocation for Venn diagrams array");
     for(int i = 0; i < system_info->solvent_types_number; i++)
     {
         solvent_coordination_history[i] = NULL;
+        solvent_atoms_coordination_history[i] = NULL;
         venn_diagrams[i] = NULL;
     }
     for(int i = 0; i < system_info->anion_types_number; i++)
@@ -478,7 +481,10 @@ void read_data(struct program_configuration* program_configuration, struct syste
         if(program_configuration->calculate_solvent_residence == 1)
         {    
             for(int i = 0; i < system_info->solvent_types_number; i++)
+            {
+                solvent_atoms_coordination_history[i] = initialize_history_array(solvent_atoms_coordination_history[i], step_number, system_info);
                 solvent_coordination_history[i] = initialize_history_array(solvent_coordination_history[i], step_number, system_info);
+            }
         }
         
         if(program_configuration->calculate_anion_residence == 1)
@@ -539,6 +545,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
         coordination_input.anion_tracked_atoms = anion_tracked_positions;
         coordination_input.current_solvent_coordination = solvent_data.current_coordination;
         coordination_input.current_anion_coordination = anion_data.current_coordination;
+        coordination_input.solvent_atoms_coordination_history = solvent_atoms_coordination_history;
         coordination_input.solvent_coordination_history = solvent_coordination_history;
         coordination_input.anion_atoms_coordination_history = anion_atoms_coordination_history;
         coordination_input.anion_coordination_history = anion_coordination_history;
@@ -632,15 +639,25 @@ void read_data(struct program_configuration* program_configuration, struct syste
             compound_index = get_next_entry_index(compound_index, system_info->compounds, system_info->compounds_number, solvent);
             struct system_compound current_compound = system_info->compounds[compound_index];
             
-            int denominator = system_info->cations_number * system_info->compounds[compound_index].quantity;
-            double* residence = calculate_residence_times(solvent_coordination_history[i], step_number, denominator, system_info);
+            int molecules_denominator = system_info->cations_number * system_info->compounds[compound_index].quantity;
+            double* molecules_residence = calculate_residence_times(solvent_coordination_history[i], step_number, molecules_denominator, system_info);
             delete_history_array(solvent_coordination_history[i], step_number, system_info->cations_number);
 
             char residence_output_name[OUTPUT_FILE_NAME_LENGTH] = "residence-times-";
             strcat(residence_output_name, current_compound.compound_name);
             strcat(residence_output_name, ".dat");
-            save_residence_to_file(residence, residence_output_name, step_number);
-            free(residence);
+            save_residence_to_file(molecules_residence, residence_output_name, step_number);
+            free(molecules_residence);
+
+            int atoms_denominator = molecules_denominator * current_compound.tracked_atoms_number;
+            double* atoms_residence = calculate_residence_times(solvent_atoms_coordination_history[i], step_number, atoms_denominator, system_info);
+            delete_history_array(solvent_atoms_coordination_history[i], step_number, system_info->cations_number);
+
+            char atoms_residence_output_name[OUTPUT_FILE_NAME_LENGTH] = "residence-times-atoms-";
+            strcat(atoms_residence_output_name, current_compound.compound_name);
+            strcat(atoms_residence_output_name, ".dat");
+            save_residence_to_file(atoms_residence, atoms_residence_output_name, step_number);
+            free(atoms_residence);
         }
     }
     if(program_configuration->calculate_anion_residence == 1)
@@ -700,6 +717,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
     }
 
     free(solvent_coordination_history);
+    free(solvent_atoms_coordination_history);
     free(anion_coordination_history);
     free(anion_atoms_coordination_history);
     free(venn_diagrams);

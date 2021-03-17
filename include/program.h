@@ -83,6 +83,7 @@ struct coordination_input {
     struct vector** anion_tracked_atoms;
     int*** current_solvent_coordination;
     int*** current_anion_coordination;
+    short int**** solvent_atoms_coordination_history;
     short int**** solvent_coordination_history;
     short int**** anion_atoms_coordination_history;
     short int**** anion_coordination_history;

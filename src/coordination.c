@@ -190,19 +190,21 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
     result.coordination_number = 0;
 
     struct program_configuration* program_configuration = coordination_input->program_configuration;
+    int solvent_atoms_history_index = 0;
     int solvent_history_index = 0;
     int anion_atoms_history_index = 0;
     int anion_history_index = 0;
-    int solvent_molecule_index = 0;
 
     int solvent_shift = 0;
     int compound_index = 0;
     for(int i = 0; i < coordination_input->system_info->solvent_types_number; i++)
     {
         compound_index = get_next_entry_index(compound_index, coordination_input->system_info->compounds, coordination_input->system_info->compounds_number, solvent);
+        struct system_compound current_compound = coordination_input->system_info->compounds[compound_index];
+
         for(int j = 0; j < coordination_input->system_info->compounds[compound_index].quantity; j++)
         {
-            solvent_molecule_index = solvent_shift + j;
+            int solvent_molecule_index = solvent_shift + j;
             int is_cation_coordinated_by_solvent = 0;
 
             for(int k = 0; k < coordination_input->system_info->compounds[compound_index].tracked_atoms_number; k++)
@@ -217,8 +219,8 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
 
                         if(program_configuration->calculate_solvent_residence == 1)
                         {
-                            coordination_input->solvent_coordination_history[i][coordination_input->step_number][cation_index][solvent_history_index] = solvent_molecule_index;
-                            solvent_history_index++;
+                            coordination_input->solvent_atoms_coordination_history[i][coordination_input->step_number][cation_index][solvent_atoms_history_index] = solvent_molecule_index * current_compound.tracked_atoms_number + k;
+                            solvent_atoms_history_index++;
                         }
                         
                         mark_coordination(cation_index, coordination_input->current_solvent_coordination[solvent_molecule_index][k]);
@@ -229,6 +231,12 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
             if(is_cation_coordinated_by_solvent == 1)
             {
                 result.solvent_molecules++;
+
+                if(program_configuration->calculate_solvent_residence == 1)
+                {
+                    coordination_input->solvent_coordination_history[i][coordination_input->step_number][cation_index][solvent_history_index] = solvent_molecule_index;
+                    solvent_history_index++;
+                }
             }
         }
 
