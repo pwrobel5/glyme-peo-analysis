@@ -31,7 +31,7 @@ void print_usage(FILE* stream, int exit_code)
 struct program_configuration* read_configuration(int argc, char* argv[])
 {
     int next_option;
-    const char* const short_options = "hs:a:b:orf";
+    const char* const short_options = "hs:a:b:orfvd";
     const struct option long_options[] = {
         { "help",                0, NULL, 'h' },
         { "solvent-threshold",   1, NULL, 's' },

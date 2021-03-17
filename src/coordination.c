@@ -209,6 +209,7 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
                 {
                     if(detect_coordination(cation_tracked_positions[l], coordination_input->solvent_tracked_atoms[i][j][k], program_configuration->solvent_threshold, program_configuration->box_size) == 1)
                     {
+                        // TODO - these are not solvent molecules!!!
                         result.coordination_number++;
                         result.solvent_molecules++;
 
