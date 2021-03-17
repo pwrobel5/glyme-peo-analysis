@@ -403,6 +403,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
     FILE** cation_output_files;
     FILE* cation_output_file;
     FILE*** solvent_output_files;
+    FILE* solvent_output_file;
     FILE* solvent_times_file = fopen("solvent_times.dat", "w");
     FILE* anion_times_file = fopen("anion_times.dat", "w");
     if(solvent_times_file == NULL || anion_times_file == NULL) raise_error("Error with opening output files");
@@ -414,9 +415,14 @@ void read_data(struct program_configuration* program_configuration, struct syste
     
     if(program_configuration->save_additional_solvent_data == 1)
     {
-        solvent_output_files = malloc(system_info->solvent_types_number * sizeof(FILE**));
-        if(solvent_output_files == NULL) raise_error("Error with memory allocation for solvent output files pointers");
-        open_solvent_data_files(solvent_output_files, system_info);
+        if(program_configuration->print_mode == separate)
+        {
+            solvent_output_files = malloc(system_info->solvent_types_number * sizeof(FILE**));
+            if(solvent_output_files == NULL) raise_error("Error with memory allocation for solvent output files pointers");
+            open_solvent_data_files(solvent_output_files, system_info);
+        }
+        else
+            solvent_output_file = fopen("solvent_output.dat", "w");
     }
 
     int*** last_solvent_coordination = malloc(system_info->solvent_molecules_number * sizeof(int**));
@@ -598,7 +604,10 @@ void read_data(struct program_configuration* program_configuration, struct syste
 
                 if(program_configuration->save_additional_solvent_data == 1)
                 {
-                    save_current_step_solvent_data(step_number, solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, system_info->cations_number, solvent_output_files[i][j]);
+                    if(program_configuration->print_mode == separate)
+                        save_current_step_solvent_data(step_number, solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, system_info->cations_number, solvent_output_files[i][j]);
+                    else
+                        save_current_step_solvent_data(step_number, solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, system_info->cations_number, solvent_output_file);
                 }
 
                 swap_coordination_arrays(&(solvent_data.last_coordination[solvent_index]), &(solvent_data.current_coordination[solvent_index]));
@@ -712,8 +721,13 @@ void read_data(struct program_configuration* program_configuration, struct syste
 
     if(program_configuration->save_additional_solvent_data == 1)
     {
-        close_solvent_data_files(solvent_output_files, system_info);
-        free(solvent_output_files);
+        if(program_configuration->print_mode == separate)
+        {
+            close_solvent_data_files(solvent_output_files, system_info);
+            free(solvent_output_files);
+        }
+        else
+            fclose(solvent_output_file);
     }
 
     free(solvent_coordination_history);
