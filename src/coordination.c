@@ -224,6 +224,7 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
                         }
                         
                         mark_coordination(cation_index, coordination_input->current_solvent_coordination[solvent_molecule_index][k]);
+                        coordination_input->current_coordinating_solvents[i][k][j] = 1;
                     }
                 }
             }
