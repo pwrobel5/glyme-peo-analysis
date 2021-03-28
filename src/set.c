@@ -181,7 +181,7 @@ struct index_set* make_set(int array_size, int* array)
     return result;
 }
 
-void determine_venn_sets(struct venn_set* venn_set, int** current_coordination, int tracked_atoms_number, struct index_combinations* index_combinations)
+void determine_venn_sets(struct venn_set* venn_set, int** current_coordination, int tracked_atoms_number, struct index_combinations* index_combinations, int current_coordination_size)
 {
     venn_set->entries_number = index_combinations->combinations_number + tracked_atoms_number; // index_combinations do not include one-element sets
     venn_set->entries = malloc(venn_set->entries_number * sizeof(struct venn_entry));
@@ -193,7 +193,7 @@ void determine_venn_sets(struct venn_set* venn_set, int** current_coordination, 
         if(venn_set->entries[i].entry_id == NULL) raise_error("Error with entry id allocation for Venn entry");
         venn_set->entries[i].entry_id[0] = i;
         venn_set->entries[i].entry_id_size = 1;
-        venn_set->entries[i].set = make_set(MAX_COORDINATED_CATIONS, current_coordination[i]);
+        venn_set->entries[i].set = make_set(current_coordination_size, current_coordination[i]);
     }
 
     for(int i = 0; i < index_combinations->combinations_number; i++)

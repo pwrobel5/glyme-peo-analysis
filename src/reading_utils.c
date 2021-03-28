@@ -642,7 +642,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
                     group_non_blanks_in_beginning(current_coordinating_solvents[i][j], current_solvent.quantity);
                 }
 
-                determine_venn_sets(&(venn_set_solvent[i]), current_coordinating_solvents[i], current_solvent.tracked_atoms_number, solvent_index_combinations[i]);
+                determine_venn_sets(&(venn_set_solvent[i]), current_coordinating_solvents[i], current_solvent.tracked_atoms_number, solvent_index_combinations[i], current_solvent.quantity);
                 struct venn_diagram* venn_diagram = determine_venn_diagram(&(venn_set_solvent[i]), current_solvent.tracked_atoms_number);
                 update_global_venn_diagram(venn_diagrams_solvent[i][step_number], venn_diagram);
                 free_venn_diagram(venn_diagram);
@@ -660,7 +660,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
 
                 if(program_configuration->calculate_venn_diagrams == 1) 
                 {
-                    determine_venn_sets(&(venn_set_cations[i][j]), solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, solvent_index_combinations[i]);
+                    determine_venn_sets(&(venn_set_cations[i][j]), solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, solvent_index_combinations[i], MAX_COORDINATED_CATIONS);
                     struct venn_diagram* venn_diagram = determine_venn_diagram(&(venn_set_cations[i][j]), current_solvent.tracked_atoms_number);
                     update_global_venn_diagram(venn_diagrams_cations[i][step_number], venn_diagram);
                     free_venn_diagram(venn_diagram);

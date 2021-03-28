@@ -158,7 +158,7 @@ struct index_set* set_intersection(struct index_set* A, struct index_set* B);
 struct index_set* set_difference(struct index_set* A, struct index_set* B);
 void free_set(struct index_set* set);
 struct index_set* make_set(int array_size, int* array);
-void determine_venn_sets(struct venn_set* venn_set, int** current_coordination, int tracked_atoms_number, struct index_combinations* index_combinations);
+void determine_venn_sets(struct venn_set* venn_set, int** current_coordination, int tracked_atoms_number, struct index_combinations* index_combinations, int current_coordination_size);
 void print_venn_set(struct venn_set* venn_set);
 void free_venn_set(struct venn_set* venn_set);
 struct venn_diagram* create_empty_venn_diagram(int tracked_atoms_number, struct index_combinations* index_combinations);
