@@ -93,6 +93,21 @@ void test_make_empty_set(void)
     free_set(set);
 }
 
+void test_group_non_blanks(void)
+{
+    int array1[] = {BLANK, 1, BLANK, 1, 1, 1, BLANK, BLANK};
+    int array2[] = {1, 1, 1, 1};
+
+    int output1[] = {1, 3, 4, 5, BLANK, BLANK, BLANK, BLANK};
+    int output2[] = {0, 1, 2, 3};
+
+    group_non_blanks_in_beginning(array1, sizeof array1 / sizeof(int));
+    group_non_blanks_in_beginning(array2, sizeof array2 / sizeof(int));
+
+    CU_ASSERT(memcmp(array1, output1, sizeof array1) == 0);
+    CU_ASSERT(memcmp(array2, output2, sizeof array2) == 0);
+}
+
 int main()
 {
     CU_pSuite pSuite = NULL;
@@ -114,7 +129,8 @@ int main()
        (CU_add_test(pSuite, "test of non overlapping sets difference", test_non_overlapping_sets_difference) == NULL) ||
        (CU_add_test(pSuite, "test difference between the same set", test_the_same_set_difference) == NULL) ||
        (CU_add_test(pSuite, "test make non-empty set", test_make_set) == NULL) ||
-       (CU_add_test(pSuite, "test make empty set", test_make_empty_set) == NULL))
+       (CU_add_test(pSuite, "test make empty set", test_make_empty_set) == NULL) ||
+       (CU_add_test(pSuite, "test of grouping non-blanks", test_group_non_blanks) == NULL))
     {
         CU_cleanup_registry();
         return CU_get_error();

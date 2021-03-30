@@ -143,6 +143,7 @@ void raise_error(const char* message);
 // reading_utils.c
 void check_symbol(const char* read, const char* expected);
 int get_next_entry_index(int current_index, struct system_compound* compounds, int compounds_number, enum entry_type entry_type);
+void group_non_blanks_in_beginning(int* array, int array_size);
 void read_data(struct program_configuration* program_configuration, struct system_info* system_info);
 
 // residence.c

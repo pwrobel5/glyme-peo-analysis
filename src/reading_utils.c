@@ -340,9 +340,11 @@ void group_non_blanks_in_beginning(int* array, int array_size)
         if(array[i] != BLANK)
         {
             array[first_free_position++] = i;
-            array[i] = BLANK;
         }
     }
+
+    for(int i = first_free_position; i < array_size; i++)
+        array[i] = BLANK;
 }
 
 void read_data(struct program_configuration* program_configuration, struct system_info* system_info)
