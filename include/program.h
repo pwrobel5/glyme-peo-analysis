@@ -8,6 +8,10 @@
 #define BLANK -1
 #define SEPARATOR " "
 
+enum statistical_ensemble {
+    NVT, NpT
+};
+
 enum entry_type {
     cation, solvent, anion, other
 };
@@ -27,6 +31,8 @@ struct program_configuration {
     int calculate_anion_residence;
     int calculate_venn_diagrams;
     int save_additional_solvent_data;
+    enum statistical_ensemble ensemble;
+    char* box_sizes_file_name;
 };
 
 struct system_compound {

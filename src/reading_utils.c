@@ -347,6 +347,14 @@ void group_non_blanks_in_beginning(int* array, int array_size)
         array[i] = BLANK;
 }
 
+void read_box_sizes(struct program_configuration* program_configuration, FILE* box_sizes_file)
+{
+    char buffer[MAX_LINE_LENGTH];
+    fgets(buffer, MAX_LINE_LENGTH, box_sizes_file);
+    strtok(buffer, SEPARATOR); // remove step number from line
+    program_configuration->box_size = atof(strtok(NULL, SEPARATOR));
+}
+
 void read_data(struct program_configuration* program_configuration, struct system_info* system_info)
 {
     FILE* input_file = fopen(program_configuration->input_file_name, "r");
@@ -429,6 +437,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
     FILE* solvent_output_file;
     FILE* solvent_times_file = fopen("solvent_times.dat", "w");
     FILE* anion_times_file = fopen("anion_times.dat", "w");
+    FILE* box_sizes_file;
     if(solvent_times_file == NULL || anion_times_file == NULL) raise_error("Error with opening output files");
 
     if(program_configuration->print_mode == separate)
@@ -446,6 +455,13 @@ void read_data(struct program_configuration* program_configuration, struct syste
         }
         else
             solvent_output_file = fopen("solvent_output.dat", "w");
+    }
+
+    if(program_configuration->ensemble == NpT)
+    {
+        box_sizes_file = fopen(program_configuration->box_sizes_file_name, "r");
+        if(box_sizes_file == NULL)
+            raise_error("Error with opening file with box sizes for NpT ensemble");
     }
 
     int*** last_solvent_coordination = malloc(system_info->solvent_molecules_number * sizeof(int**));
@@ -563,6 +579,9 @@ void read_data(struct program_configuration* program_configuration, struct syste
                 venn_diagrams_solvent[i][step_number] = create_empty_venn_diagram(current_compound.tracked_atoms_number, solvent_index_combinations[i]);
             }
         }
+
+        if(program_configuration->ensemble == NpT)
+            read_box_sizes(program_configuration, box_sizes_file);
 
         // omit commentary line
         fgets(buffer, MAX_LINE_LENGTH, input_file);
@@ -869,6 +888,9 @@ void read_data(struct program_configuration* program_configuration, struct syste
         free(venn_set_cations);
         free(venn_set_solvent);
     }
+
+    if(program_configuration->ensemble == NpT)
+        fclose(box_sizes_file);
 
     current_index = -1;
     for(int i = 0; i < system_info->solvent_types_number; i++)

@@ -5,3 +5,5 @@ samples/
 *.txt
 *.dat
 *.zip
+*.xst
+*.xyz
