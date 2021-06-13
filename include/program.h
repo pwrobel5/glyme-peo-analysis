@@ -87,6 +87,7 @@ struct coordination_input {
     int step_number;
     struct vector*** solvent_tracked_atoms;
     struct vector** anion_tracked_atoms;
+    int** coordinated_cations_to_anions;
     int*** current_solvent_coordination;
     int*** current_anion_coordination;
     int*** current_coordinating_solvents;

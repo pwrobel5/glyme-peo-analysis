@@ -524,6 +524,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
 
         current_coordinating_solvents[i] = malloc(current_compound.tracked_atoms_number * sizeof(int*));
         if(current_coordinating_solvents[i] == NULL) raise_error("Error with memory allocation for coordinating solvents array");
+
         for(int j = 0; j < current_compound.tracked_atoms_number; j++)
         {
             current_coordinating_solvents[i][j] = malloc(current_compound.quantity * sizeof(int));
@@ -531,6 +532,25 @@ void read_data(struct program_configuration* program_configuration, struct syste
             clean_current_coordinating_solvents_array(current_coordinating_solvents[i][j], current_compound.quantity);
         }        
     }
+
+    int** coordinated_cations_to_anions = malloc(system_info->anion_types_number * sizeof(int*));
+    if(coordinated_cations_to_anions == NULL) raise_error("Error with memory allocation for cations coordinating anions array");
+    current_index = -1;
+    for(int i = 0; i < system_info->anion_types_number; i++)
+    {
+        current_index = get_next_entry_index(current_index, system_info->compounds, system_info->compounds_number, anion);
+        struct system_compound current_compound = system_info->compounds[current_index];
+
+        coordinated_cations_to_anions[i] = malloc(current_compound.quantity * sizeof(int));
+        if(coordinated_cations_to_anions[i] == NULL) raise_error("Error with memory allocation for cations coordinating anions array");
+
+        for(int j = 0; j < current_compound.quantity; j++)
+        {
+            coordinated_cations_to_anions[i][j] = 0;
+        }
+    }
+
+    FILE* coordinated_cations_output = fopen("anion_cations.dat", "w");
 
     int step_number = 0;
 
@@ -615,6 +635,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
         coordination_input.step_number = step_number;
         coordination_input.solvent_tracked_atoms = solvent_tracked_positions;
         coordination_input.anion_tracked_atoms = anion_tracked_positions;
+        coordination_input.coordinated_cations_to_anions = coordinated_cations_to_anions;
         coordination_input.current_solvent_coordination = solvent_data.current_coordination;
         coordination_input.current_anion_coordination = anion_data.current_coordination;
         coordination_input.current_coordinating_solvents = current_coordinating_solvents;
@@ -694,7 +715,7 @@ void read_data(struct program_configuration* program_configuration, struct syste
                         save_current_step_solvent_data(step_number, solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, system_info->cations_number, solvent_output_files[i][j]);
                     else
                         save_current_step_solvent_data(step_number, solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, system_info->cations_number, solvent_output_file);
-                }
+                }                
 
                 swap_coordination_arrays(&(solvent_data.last_coordination[solvent_index]), &(solvent_data.current_coordination[solvent_index]));
                 clear_coordination_array(solvent_data.current_coordination[solvent_index], current_solvent.tracked_atoms_number, MAX_COORDINATED_CATIONS);
@@ -715,6 +736,9 @@ void read_data(struct program_configuration* program_configuration, struct syste
                 int anion_index = j + anion_shift;
                 swap_coordination_arrays(&(anion_data.last_coordination[anion_index]), &(anion_data.current_coordination[anion_index]));
                 clear_coordination_array(anion_data.current_coordination[anion_index], current_anion.tracked_atoms_number, MAX_COORDINATED_CATIONS);
+
+                fprintf(coordinated_cations_output, "%d\n", coordinated_cations_to_anions[i][j]);
+                coordinated_cations_to_anions[i][j] = 0;
             }
 
             anion_shift += current_anion.quantity;
@@ -905,6 +929,13 @@ void read_data(struct program_configuration* program_configuration, struct syste
         free(current_coordinating_solvents[i]);
     }
     free(current_coordinating_solvents);
+
+    for(int i = 0; i < system_info->anion_types_number; i++)
+    {
+        free(coordinated_cations_to_anions[i]);
+    }
+    free(coordinated_cations_to_anions);
+    fclose(coordinated_cations_output);
     
     fclose(input_file);
 }

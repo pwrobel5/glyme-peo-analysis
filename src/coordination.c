@@ -232,7 +232,6 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
             if(is_cation_coordinated_by_solvent == 1)
             {
                 result.solvent_molecules++;
-
                 if(program_configuration->calculate_solvent_residence == 1)
                 {
                     coordination_input->solvent_coordination_history[i][coordination_input->step_number][cation_index][solvent_history_index] = solvent_molecule_index;
@@ -281,6 +280,7 @@ struct cation_coord_info get_coordination_info(int cation_index, int cation_trac
             if(is_cation_coordinated_by_anion == 1)
             {
                 result.anion_molecules++;
+                coordination_input->coordinated_cations_to_anions[i][j]++;
 
                 if(program_configuration->calculate_anion_residence == 1)
                 {

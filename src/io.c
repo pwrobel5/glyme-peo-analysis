@@ -14,7 +14,7 @@ void print_usage(FILE* stream, int exit_code)
     fprintf(stream, "Usage: [ options ] inputfile systeminfofile\n");
     fprintf(stream,
             "\t-h --help\t\t\tdisplay help text\n"
-            "\t-s --solvent-threshold\tdeclare threshold for solvent-metal coordination, default: %f\n"
+            "\t-s --solvent-threshold\t\tdeclare threshold for solvent-metal coordination, default: %f\n"
             "\t-a --anion-threshold\t\tdeclare threshold for anion-metal coordination, default: %f\n"
             "\t-b --box-size\t\t\tdeclare box size, default: %f\n"
             "\t-o --one-output\t\t\tproduce one output file for coordination\n"
