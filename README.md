@@ -58,7 +58,7 @@ For example, in the system containing 30 ionic pairs Na-TFSI and 300 monoglyme m
 3
 cation Na Na 30 1 Na 1
 anion TFSI O 30 30 O 4
-solvent monoglym C 300 22 O 2
+solvent monoglyme C 300 22 O 2
 ```
 
 This file with example xyz file are located in `samples` directory.
