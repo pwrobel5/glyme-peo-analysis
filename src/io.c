@@ -9,7 +9,7 @@
 #define DEFAULT_ANION_THRESHOLD 1.50
 #define DEFAULT_BOX_SIZE 22.00
 
-void print_usage(FILE* stream, int exit_code)
+void print_usage(FILE *stream, int exit_code)
 {
     fprintf(stream, "Usage: [ options ] inputfile systeminfofile\n");
     fprintf(stream,
@@ -29,10 +29,10 @@ void print_usage(FILE* stream, int exit_code)
     exit(exit_code);
 }
 
-struct program_configuration* read_configuration(int argc, char* argv[])
+program_configuration_t *read_configuration(int argc, char *argv[])
 {
     int next_option;
-    const char* const short_options = "hs:a:b:orfvdp:";
+    const char *const short_options = "hs:a:b:orfvdp:";
     const struct option long_options[] = {
         { "help",                0, NULL, 'h' },
         { "solvent-threshold",   1, NULL, 's' },
@@ -47,8 +47,8 @@ struct program_configuration* read_configuration(int argc, char* argv[])
         { NULL,                  0, NULL,  0  }
     };
 
-    struct program_configuration* program_configuration = malloc(sizeof(struct program_configuration));
-    if(program_configuration == NULL) raise_error("Error with memory allocation for program_configuration!");
+    program_configuration_t *program_configuration = malloc(sizeof(program_configuration_t));
+    if (program_configuration == NULL) raise_error("Error with memory allocation for program_configuration!");
 
     program_configuration->input_file_name = NULL;
     program_configuration->system_file_name = NULL;
@@ -65,8 +65,7 @@ struct program_configuration* read_configuration(int argc, char* argv[])
 
     do {
         next_option = getopt_long(argc, argv, short_options, long_options, NULL);
-        switch(next_option)
-        {
+        switch (next_option) {
             case 'h':
                 print_usage(stdout, EXIT_SUCCESS);
                 break;
@@ -101,15 +100,12 @@ struct program_configuration* read_configuration(int argc, char* argv[])
             case '?':
                 print_usage(stderr, EXIT_FAILURE);
         }
-    } while(next_option != -1);
+    } while (next_option != -1);
 
-    if(argc > optind + 1)
-    {
+    if (argc > optind + 1) {
         program_configuration->input_file_name = argv[optind];
         program_configuration->system_file_name = argv[optind + 1];
-    }
-    else
-    {
+    } else {
         errno = ENODATA;
         perror("No input file given!");
         print_usage(stderr, EXIT_FAILURE);
