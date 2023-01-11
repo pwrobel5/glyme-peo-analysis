@@ -62,3 +62,28 @@ solvent monoglym C 300 22 O 2
 ```
 
 This file with example xyz file are located in `samples` directory.
+
+## Output description
+
+For provided samples with running:
+```
+./program.x -s 2.5 -a 2.5 -b 39.1619 -r -f -v -d samples/m-t.39.1619.xyz samples/m-t-sys-info.txt
+```
+
+There are produced some output files:
+* `Na_x.dat` - files containing in every line data in format: 
+```
+step_number coordination_number corrdinating_atoms_from_solvent coordinating_solvent_molecules coordinating_atoms_from_anion coordinating_anions
+```
+* `monoglyme_x.dat` - output file for each solvent molecule with every line in format:
+```
+step_number number_of_distinct_coordinated_cations number_of_solvent_atoms_involved_in_coordination
+```
+* `cations_anions.dat` - file containing in every line number of currently coordinated cations to each anion, data for creating histogram
+* `anions_times.dat` - file containing number of frames with existence of coordination between anion and cation, data for creating histogram
+* `solvent-times.dat` - as above but for solvent molecules
+* `residence-times-TFSI.dat` - residence autocorrelation function for bonding with anions without distinguishing particular anion atoms, i.e. when O1 atom from given TFSI anion forms at time `t` bond with given cation and in time `t + 1` no, but O2 atom forms a bond with the same cation it is treaten as non-broken between these two timesteps
+* `residence-times-atoms-TFSI.dat` - as above, but treating each tracked atom of anion separately, i.e. when O1 atom from given TFSI anion forms at time `t` bond with given cation and in time `t + 1` no, but O2 atom forms a bond with the same cation it is treaten as broken between these two timesteps
+* `residence-times-monoglyme.dat`, `residence-times-atoms-monoglyme.dat` - as above but for solvent (monoglyme)
+* `venn-cations-monoglyme.dat` - data for Venn diagram from cations perspective
+* `venn-solvent-monoglyme.dat` - as above, but from solvent molecules perspective
