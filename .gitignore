@@ -1,4 +1,3 @@
-samples/
 *.o
 .vscode/
 *.x
@@ -7,3 +6,5 @@ samples/
 *.zip
 *.xst
 *.xyz
+!samples/m-t-sys-info.txt
+!samples/m-t.39.1619.xyz
